@@ -1,5 +1,5 @@
 // ============================================================
-// ocr.js — Browser-Side OCR Engine (Tesseract.js)
+// ocr.js — Browser-Side OCR Engine (Tesseract.js Word-Level Bounding Box Extraction)
 // Runs entirely inside the user's browser — 100% FREE with ZERO external AI APIs.
 // ============================================================
 
@@ -42,7 +42,7 @@ export async function preprocessImage(file) {
       let width = img.naturalWidth || img.width;
       let height = img.naturalHeight || img.height;
 
-      const minDim = 1200;
+      const minDim = 1600;
       if (width < minDim && height < minDim) {
         const scale = minDim / Math.min(width, height);
         width = Math.round(width * scale);
@@ -63,7 +63,7 @@ export async function preprocessImage(file) {
         // Luminance formula
         const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
         // Contrast boost factor
-        const contrast = 1.25;
+        const contrast = 1.35;
         let adjusted = (gray - 128) * contrast + 128;
         adjusted = Math.min(255, Math.max(0, adjusted));
 
@@ -76,8 +76,8 @@ export async function preprocessImage(file) {
 
       canvas.toBlob(
         (blob) => {
-          if (blob) resolve(blob);
-          else resolve(file); // fallback to original file
+          if (blob) resolve({ blob, width, height });
+          else resolve({ blob: file, width, height });
         },
         "image/png"
       );
@@ -92,9 +92,8 @@ export async function preprocessImage(file) {
   });
 }
 
-// Execute OCR on a timetable image file
+// Execute OCR on a timetable image file, extracting word-level bounding box geometry
 export async function runTimetableOCR(file, onProgress = () => {}) {
-  // Validate file
   if (!file) throw new Error("No image file provided.");
   const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "image/bmp"];
   if (!validTypes.includes(file.type.toLowerCase())) {
@@ -107,34 +106,58 @@ export async function runTimetableOCR(file, onProgress = () => {}) {
   onProgress({ stage: "init", message: "Loading OCR engine...", progress: 10 });
   const Tesseract = await loadTesseract();
 
-  onProgress({ stage: "preprocess", message: "Preprocessing image for recognition...", progress: 25 });
-  let processedBlob;
+  onProgress({ stage: "preprocess", message: "Preprocessing image for spatial grid detection...", progress: 25 });
+  let processedData;
   try {
-    processedBlob = await preprocessImage(file);
+    processedData = await preprocessImage(file);
   } catch (err) {
     console.warn("Image preprocessing warning:", err);
-    processedBlob = file;
+    processedData = { blob: file, width: 1200, height: 800 };
   }
 
-  onProgress({ stage: "recognize", message: "Extracting text from timetable...", progress: 40 });
+  onProgress({ stage: "recognize", message: "Extracting text and bounding box geometry...", progress: 40 });
 
-  const result = await Tesseract.recognize(processedBlob, "eng", {
+  const result = await Tesseract.recognize(processedData.blob, "eng", {
     logger: (m) => {
       if (m.status === "recognizing text") {
         const p = Math.round(40 + (m.progress || 0) * 50);
-        onProgress({ stage: "recognize", message: `Reading timetable (${Math.round((m.progress || 0) * 100)}%)...`, progress: p });
+        onProgress({ stage: "recognize", message: `Analyzing table geometry (${Math.round((m.progress || 0) * 100)}%)...`, progress: p });
       }
     },
   });
 
-  onProgress({ stage: "finalize", message: "Finalizing timetable structure...", progress: 95 });
+  onProgress({ stage: "finalize", message: "Constructing spatial grid and cell geometry...", progress: 95 });
 
   const rawText = result?.data?.text || "";
   const lines = rawText.split("\n").map((l) => l.trim()).filter(Boolean);
 
+  // Extract detailed word-level bounding boxes for spatial grid parsing
+  const rawWords = result?.data?.words || [];
+  const words = rawWords
+    .filter((w) => w.text && w.text.trim().length > 0)
+    .map((w) => {
+      const x0 = w.bbox ? w.bbox.x0 : 0;
+      const y0 = w.bbox ? w.bbox.y0 : 0;
+      const x1 = w.bbox ? w.bbox.x1 : 0;
+      const y1 = w.bbox ? w.bbox.y1 : 0;
+      return {
+        text: w.text.trim(),
+        x0,
+        y0,
+        x1,
+        y1,
+        cx: (x0 + x1) / 2,
+        cy: (y0 + y1) / 2,
+        confidence: w.confidence || 0,
+      };
+    });
+
   return {
     rawText,
     lines,
+    words,
+    imageWidth: processedData.width,
+    imageHeight: processedData.height,
     confidence: result?.data?.confidence || 0,
   };
 }

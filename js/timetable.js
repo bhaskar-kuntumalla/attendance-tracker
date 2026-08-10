@@ -1,16 +1,16 @@
 // ============================================================
 // timetable.js — Controller for timetable.html
-// Manages image upload, client OCR, verification, and grid view.
+// Manages image upload, browser OCR geometry extraction, verification, and grid view.
 // ============================================================
 
 import { requireAuth, showToast, friendlyError, withLoading, escapeHTML } from "./utils.js";
 import { runTimetableOCR } from "./ocr.js";
 import { parseTimetableText, suggestSubjectMerges, DAYS_OF_WEEK, getDefaultPeriods } from "./timetable-parser.js";
-import { getTimetableEntries, saveTimetableData, getSubjects, saveTimetableUpload, getPeriods } from "./data.js";
+import { getTimetableEntries, saveTimetableData, saveTimetableUpload } from "./data.js";
 
 let currentUser = null;
 let currentFile = null;
-let parsedData = null; // { periods, entries }
+let parsedData = null; // { headerMetadata, periods, entries, abbreviationMap }
 let existingEntries = [];
 
 // DOM Elements
@@ -103,12 +103,12 @@ function wireUploadControls() {
   optManual.addEventListener("click", () => {
     optManual.classList.add("active");
     optUpload.classList.remove("active");
-    // Generate empty timetable structure for manual entry
     parsedData = {
+      headerMetadata: {},
       periods: getDefaultPeriods(),
       entries: [
-        { day_of_week: "Monday", period_number: 1, subject_name: "Mathematics", subject_code: "MATH", subject_type: "THEORY", period_count: 1, start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Monday", period_number: 2, subject_name: "DBMS Lab", subject_code: "DBMS", subject_type: "LAB", period_count: 2, start_time: "10:00", end_time: "12:00" },
+        { day_of_week: "Monday", period_number: 1, subject_name: "Mathematics", subject_code: "MATH", subject_type: "THEORY", period_count: 1, start_time: "09:15", end_time: "10:15" },
+        { day_of_week: "Monday", period_number: 2, subject_name: "DBMS Lab", subject_code: "DBMS", subject_type: "LAB", period_count: 2, start_time: "10:15", end_time: "12:25" },
       ],
     };
     renderVerificationForm();
@@ -124,7 +124,6 @@ function wireUploadControls() {
     if (e.target.files && e.target.files[0]) handleFileSelected(e.target.files[0]);
   });
 
-  // Drag and drop
   dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
   dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
   dropzone.addEventListener("drop", (e) => {
@@ -168,17 +167,15 @@ async function startOCRProcess() {
       progressPctText.textContent = `${progressInfo.progress}%`;
       progressStatusText.textContent = progressInfo.message;
 
-      // Update step indicators
       if (progressInfo.progress >= 20) document.getElementById("step-1").classList.add("completed");
       if (progressInfo.progress >= 35) document.getElementById("step-2").classList.add("completed");
       if (progressInfo.progress >= 70) document.getElementById("step-3").classList.add("completed");
       if (progressInfo.progress >= 95) document.getElementById("step-4").classList.add("completed");
     });
 
-    // Parse raw OCR text into structured format
-    parsedData = parseTimetableText(ocrResult.rawText);
+    // Parse geometry and word bounding boxes
+    parsedData = parseTimetableText(ocrResult);
 
-    // Save OCR log record in background
     saveTimetableUpload(currentUser.id, {
       fileType: currentFile.type,
       rawText: ocrResult.rawText,
@@ -188,10 +185,10 @@ async function startOCRProcess() {
     if (!parsedData.entries || parsedData.entries.length === 0) {
       showToast("Could not detect clear timetable structure. Switching to manual verification mode.", "info");
       parsedData.entries = [
-        { day_of_week: "Monday", period_number: 1, subject_name: "Subject 1", subject_code: "SUB1", subject_type: "THEORY", period_count: 1, start_time: "09:00", end_time: "10:00" },
+        { day_of_week: "Monday", period_number: 1, subject_name: "Subject 1", subject_code: "SUB1", subject_type: "THEORY", period_count: 1, start_time: "09:15", end_time: "10:15" },
       ];
     } else {
-      showToast(`Detected ${parsedData.entries.length} class entries! Please verify below.`, "success");
+      showToast(`Extracted ${parsedData.entries.length} class entries dynamically! Please verify below.`, "success");
     }
 
     renderVerificationForm();
@@ -220,30 +217,49 @@ function wireVerificationControls() {
       subject_code: "",
       subject_type: "THEORY",
       period_count: 1,
-      start_time: "09:00",
-      end_time: "10:00",
+      start_time: "09:15",
+      end_time: "10:15",
     });
     renderVerificationForm();
   });
 }
 
 function renderVerificationForm() {
+  const meta = parsedData.headerMetadata || {};
+  const hasMeta = meta.branch || meta.semester || meta.section || meta.academicYear;
+
   // Check for deduplication suggestions
   const mergeSuggestions = suggestSubjectMerges(parsedData.entries);
   const duplicates = mergeSuggestions.filter((m) => m.occurrences.length > 1);
 
+  let bannerHTML = "";
+
+  if (hasMeta) {
+    bannerHTML += `
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#1e40af;">
+        ${meta.branch ? `<div><strong>Branch:</strong> ${escapeHTML(meta.branch)}</div>` : ""}
+        ${meta.semester ? `<div><strong>Semester:</strong> ${escapeHTML(meta.semester)}</div>` : ""}
+        ${meta.section ? `<div><strong>Section:</strong> ${escapeHTML(meta.section)}</div>` : ""}
+        ${meta.academicYear ? `<div><strong>Academic Year:</strong> ${escapeHTML(meta.academicYear)}</div>` : ""}
+      </div>`;
+  }
+
   if (duplicates.length > 0) {
-    dedupBannerSlot.innerHTML = `
+    bannerHTML += `
       <div class="dedup-banner">
         <div>
-          <div class="dedup-title">Possible Duplicate Subject Variations Found</div>
+          <div class="dedup-title">Possible Duplicate Subject Variations Detected</div>
           <div style="font-size:12px;color:#78350f;">
             ${duplicates.map((d) => `"${d.canonicalName}" (${d.count} times)`).join(", ")}
           </div>
         </div>
         <button id="merge-subjects-btn" class="btn btn-secondary btn-sm">Auto-Merge Names</button>
       </div>`;
+  }
 
+  dedupBannerSlot.innerHTML = bannerHTML;
+
+  if (duplicates.length > 0) {
     document.getElementById("merge-subjects-btn")?.addEventListener("click", () => {
       for (const d of duplicates) {
         for (const occ of d.occurrences) {
@@ -253,8 +269,6 @@ function renderVerificationForm() {
       showToast("Merged subject name variations.", "success");
       renderVerificationForm();
     });
-  } else {
-    dedupBannerSlot.innerHTML = "";
   }
 
   // Group entries by day
@@ -301,7 +315,7 @@ function renderVerificationForm() {
                     </select>
                   </div>
                   <div>
-                    <select class="field-periods" title="Period Count">
+                    <select class="field-periods" title="Period Count / Duration">
                       <option value="1" ${entry.period_count === 1 ? "selected" : ""}>1 period</option>
                       <option value="2" ${entry.period_count === 2 ? "selected" : ""}>2 periods</option>
                       <option value="3" ${entry.period_count === 3 ? "selected" : ""}>3 periods</option>
@@ -318,7 +332,6 @@ function renderVerificationForm() {
       </div>`;
   }).join("");
 
-  // Attach live event listeners to editable fields
   verificationDaysList.querySelectorAll(".entry-row-grid").forEach((row) => {
     const idx = parseInt(row.dataset.entryIdx, 10);
     const item = parsedData.entries[idx];
@@ -351,7 +364,6 @@ async function saveConfirmedTimetable() {
     return;
   }
 
-  // Generate unique subjects summary from verified entries
   const subjectsToCreateMap = new Map();
   for (const entry of parsedData.entries) {
     const name = entry.subject_name.trim();
@@ -375,7 +387,7 @@ async function saveConfirmedTimetable() {
 
   await withLoading(confirmBtnBottom, "Saving Timetable...", async () => {
     try {
-      const saved = await saveTimetableData(currentUser.id, {
+      await saveTimetableData(currentUser.id, {
         periods: parsedData.periods || getDefaultPeriods(),
         subjects: subjectsToCreate,
         entries: parsedData.entries,
@@ -392,7 +404,6 @@ async function saveConfirmedTimetable() {
 /* ---------------- Render Grid View ---------------- */
 
 function renderGrid(entries) {
-  // Days Mon-Sat
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const maxPeriods = 7;
 
@@ -404,7 +415,6 @@ function renderGrid(entries) {
         <td style="font-weight:600;color:#64748b;">${timeLabel}</td>
         ${days
           .map((day) => {
-            const entry = entries.find((e) => e.day_of_week === day && e.period_id && e.period_id.includes ? true : (e.day_of_week === day));
             const dayEntries = entries.filter((e) => e.day_of_week === day);
             const classItem = dayEntries[pNum - 1];
 
@@ -427,7 +437,6 @@ function renderGrid(entries) {
 
   gridBody.innerHTML = gridHTML;
 
-  // Mobile list rendering
   mobileList.innerHTML = days
     .map((day) => {
       const dayEntries = entries.filter((e) => e.day_of_week === day);
