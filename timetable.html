@@ -101,7 +101,8 @@
             <h2 style="font-size:18px;font-weight:700;">Verify & Confirm Timetable</h2>
             <p class="text-sm" style="color:#64748b;">Review extracted subjects, timing, and labs. Make edits if needed before saving.</p>
           </div>
-          <div style="display:flex;gap:10px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button id="show-debug-grid-btn" class="btn btn-secondary btn-sm" style="display:none;">Show Extraction Grid</button>
             <button id="add-entry-btn" class="btn btn-secondary btn-sm">+ Add Class</button>
             <button id="confirm-timetable-btn" class="btn btn-primary btn-sm">Confirm Timetable</button>
           </div>
@@ -159,6 +160,22 @@
     </div>
 
   </main>
+</div>
+
+<!-- Debug Canvas Overlay Modal -->
+<div class="modal-overlay" id="debug-modal">
+  <div class="modal" style="max-width:900px;width:95%;">
+    <div class="modal-header">
+      <h3>Extraction Grid Debug View</h3>
+      <button class="modal-close" id="close-debug-modal-btn" aria-label="Close">&times;</button>
+    </div>
+    <div style="margin-bottom:12px;font-size:13px;color:#64748b;">
+      Visual overlay showing detected table boundaries (red), period columns (blue), day rows (green), and visual cells (yellow).
+    </div>
+    <div style="overflow:auto;max-height:70vh;border:1px solid #e2e8f0;border-radius:10px;text-align:center;">
+      <canvas id="debug-canvas" style="max-width:100%;height:auto;"></canvas>
+    </div>
+  </div>
 </div>
 
 <div id="bottomnav-slot"></div>

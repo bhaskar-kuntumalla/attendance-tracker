@@ -1,6 +1,6 @@
 // ============================================================
 // timetable.js — Controller for timetable.html
-// Manages image upload, browser OCR geometry extraction, verification, and grid view.
+// Manages image upload, browser OCR geometry extraction, verification, grid view, and debug overlay.
 // ============================================================
 
 import { requireAuth, showToast, friendlyError, withLoading, escapeHTML } from "./utils.js";
@@ -10,7 +10,7 @@ import { getTimetableEntries, saveTimetableData, saveTimetableUpload } from "./d
 
 let currentUser = null;
 let currentFile = null;
-let parsedData = null; // { headerMetadata, periods, entries, abbreviationMap }
+let parsedData = null; // { headerMetadata, periods, entries, abbreviationMap, detectedGrid }
 let existingEntries = [];
 
 // DOM Elements
@@ -41,6 +41,11 @@ const confirmBtnTop = document.getElementById("confirm-timetable-btn");
 const confirmBtnBottom = document.getElementById("confirm-timetable-btn-bottom");
 const cancelVerifyBtn = document.getElementById("cancel-verification-btn");
 const addEntryBtn = document.getElementById("add-entry-btn");
+const showDebugGridBtn = document.getElementById("show-debug-grid-btn");
+
+const debugModal = document.getElementById("debug-modal");
+const closeDebugModalBtn = document.getElementById("close-debug-modal-btn");
+const debugCanvas = document.getElementById("debug-canvas");
 
 const gridBody = document.getElementById("grid-body");
 const mobileList = document.getElementById("mobile-timetable-list");
@@ -51,6 +56,7 @@ export async function initTimetable() {
 
   wireUploadControls();
   wireVerificationControls();
+  wireDebugModal();
 
   await checkExistingTimetable();
 }
@@ -82,6 +88,11 @@ function showVerificationScreen() {
   setupContainer.style.display = "none";
   verificationContainer.style.display = "block";
   viewContainer.style.display = "none";
+  if (currentFile && parsedData?.detectedGrid) {
+    showDebugGridBtn.style.display = "inline-flex";
+  } else {
+    showDebugGridBtn.style.display = "none";
+  }
 }
 
 function showViewScreen(entries) {
@@ -173,8 +184,8 @@ async function startOCRProcess() {
       if (progressInfo.progress >= 95) document.getElementById("step-4").classList.add("completed");
     });
 
-    // Parse geometry and word bounding boxes
-    parsedData = parseTimetableText(ocrResult);
+    // Pass image file blob along with OCR text/words to geometry parser
+    parsedData = await parseTimetableText(ocrResult, currentFile);
 
     saveTimetableUpload(currentUser.id, {
       fileType: currentFile.type,
@@ -228,10 +239,6 @@ function renderVerificationForm() {
   const meta = parsedData.headerMetadata || {};
   const hasMeta = meta.branch || meta.semester || meta.section || meta.academicYear;
 
-  // Check for deduplication suggestions
-  const mergeSuggestions = suggestSubjectMerges(parsedData.entries);
-  const duplicates = mergeSuggestions.filter((m) => m.occurrences.length > 1);
-
   let bannerHTML = "";
 
   if (hasMeta) {
@@ -244,32 +251,7 @@ function renderVerificationForm() {
       </div>`;
   }
 
-  if (duplicates.length > 0) {
-    bannerHTML += `
-      <div class="dedup-banner">
-        <div>
-          <div class="dedup-title">Possible Duplicate Subject Variations Detected</div>
-          <div style="font-size:12px;color:#78350f;">
-            ${duplicates.map((d) => `"${d.canonicalName}" (${d.count} times)`).join(", ")}
-          </div>
-        </div>
-        <button id="merge-subjects-btn" class="btn btn-secondary btn-sm">Auto-Merge Names</button>
-      </div>`;
-  }
-
   dedupBannerSlot.innerHTML = bannerHTML;
-
-  if (duplicates.length > 0) {
-    document.getElementById("merge-subjects-btn")?.addEventListener("click", () => {
-      for (const d of duplicates) {
-        for (const occ of d.occurrences) {
-          occ.subject_name = d.canonicalName;
-        }
-      }
-      showToast("Merged subject name variations.", "success");
-      renderVerificationForm();
-    });
-  }
 
   // Group entries by day
   const byDay = new Map();
@@ -293,8 +275,10 @@ function renderVerificationForm() {
           ${list
             .map((entry, idx) => {
               const globalIdx = parsedData.entries.indexOf(entry);
+              const needsReview = entry.needsReview;
+
               return `
-                <div class="entry-row-grid" data-entry-idx="${globalIdx}">
+                <div class="entry-row-grid ${needsReview ? "needs-review-row" : ""}" data-entry-idx="${globalIdx}" style="${needsReview ? "background:#fffbeb;border:1px solid #fde68a;" : ""}">
                   <div>
                     <select class="field-day" title="Day">
                       ${DAYS_OF_WEEK.map((d) => `<option value="${d}" ${d === entry.day_of_week ? "selected" : ""}>${d.slice(0, 3)}</option>`).join("")}
@@ -302,6 +286,7 @@ function renderVerificationForm() {
                   </div>
                   <div>
                     <input type="text" class="field-name" value="${escapeHTML(entry.subject_name)}" placeholder="Subject Name" title="Subject Name" />
+                    ${needsReview ? `<span style="font-size:10px;color:#d97706;font-weight:600;">⚠️ Needs Review</span>` : ""}
                   </div>
                   <div>
                     <input type="text" class="field-code" value="${escapeHTML(entry.subject_code || "")}" placeholder="Code (e.g. DBMS)" title="Subject Code" />
@@ -343,19 +328,101 @@ function renderVerificationForm() {
     });
     row.querySelector(".field-name").addEventListener("input", (e) => { item.subject_name = e.target.value; });
     row.querySelector(".field-code").addEventListener("input", (e) => { item.subject_code = e.target.value; });
-    row.querySelector(".field-type").addEventListener("change", (e) => {
-      item.subject_type = e.target.value;
-      if (item.subject_type === "LAB" && item.period_count === 1) {
-        item.period_count = 2;
-        row.querySelector(".field-periods").value = "2";
-      }
-    });
+    row.querySelector(".field-type").addEventListener("change", (e) => { item.subject_type = e.target.value; });
     row.querySelector(".field-periods").addEventListener("change", (e) => { item.period_count = parseInt(e.target.value, 10); });
     row.querySelector(".remove-entry-btn").addEventListener("click", () => {
       parsedData.entries.splice(idx, 1);
       renderVerificationForm();
     });
   });
+}
+
+/* ---------------- Debug Grid View Modal ---------------- */
+
+function wireDebugModal() {
+  showDebugGridBtn.addEventListener("click", drawExtractionDebugGrid);
+  closeDebugModalBtn.addEventListener("click", () => debugModal.classList.remove("open"));
+  debugModal.addEventListener("click", (e) => { if (e.target === debugModal) debugModal.classList.remove("open"); });
+}
+
+function drawExtractionDebugGrid() {
+  if (!currentFile || !parsedData?.detectedGrid) return;
+  debugModal.classList.add("open");
+
+  const grid = parsedData.detectedGrid;
+  const img = new Image();
+  const url = URL.createObjectURL(currentFile);
+
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    debugCanvas.width = img.naturalWidth || img.width;
+    debugCanvas.height = img.naturalHeight || img.height;
+    const ctx = debugCanvas.getContext("2d");
+
+    // 1. Draw raw image
+    ctx.drawImage(img, 0, 0);
+
+    // 2. Draw Table Region Box (Red)
+    if (grid.tableRegion) {
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(grid.tableRegion.minX, grid.tableRegion.minY, grid.tableRegion.width, grid.tableRegion.height);
+    }
+
+    // 3. Draw Period Column Lines (Blue Dashed)
+    if (grid.periodColumns) {
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      for (const col of grid.periodColumns) {
+        ctx.beginPath();
+        ctx.moveTo(col.x0, 0);
+        ctx.lineTo(col.x0, debugCanvas.height);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
+    // 4. Draw Day Row Lines (Green Solid)
+    if (grid.dayRows) {
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 2;
+      for (const row of grid.dayRows) {
+        ctx.beginPath();
+        ctx.moveTo(0, row.y0);
+        ctx.lineTo(debugCanvas.width, row.y0);
+        ctx.stroke();
+      }
+    }
+
+    // 5. Draw Reconstructed Cell Boxes (Yellow Overlay + Text Labels)
+    if (grid.gridCells) {
+      for (const cell of grid.gridCells) {
+        ctx.fillStyle = cell.needsReview ? "rgba(245, 158, 11, 0.35)" : "rgba(253, 224, 71, 0.25)";
+        ctx.strokeStyle = cell.needsReview ? "#d97706" : "#eab308";
+        ctx.lineWidth = 2;
+
+        const w = cell.bbox.x1 - cell.bbox.x0;
+        const h = cell.bbox.y1 - cell.bbox.y0;
+        ctx.fillRect(cell.bbox.x0, cell.bbox.y0, w, h);
+        ctx.strokeRect(cell.bbox.x0, cell.bbox.y0, w, h);
+
+        // Find corresponding entry text
+        const entry = parsedData.entries.find(
+          (e) => e.day_of_week === cell.day_of_week && e.period_number === cell.startPeriod
+        );
+
+        if (entry) {
+          ctx.fillStyle = "#0f172a";
+          ctx.font = "bold 14px sans-serif";
+          const label = `${entry.subject_name} (${entry.period_count}P)`;
+          ctx.fillText(label, cell.bbox.x0 + 4, cell.bbox.y0 + 18);
+        }
+      }
+    }
+  };
+
+  img.src = url;
 }
 
 async function saveConfirmedTimetable() {
