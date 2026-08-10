@@ -207,23 +207,37 @@
 
 .entry-row-grid {
   display: grid;
-  grid-template-columns: 120px 1.5fr 1fr 110px 90px 40px;
+  grid-template-columns: 100px 2.2fr 100px 100px 90px 40px;
   gap: 10px;
   align-items: center;
-  padding: 8px 0;
+  padding: 10px;
+  border-radius: 10px;
   border-bottom: 1px dashed #f1f5f9;
+  transition: background 0.15s ease;
 }
 
 .entry-row-grid:last-child {
   border-bottom: none;
 }
 
+.entry-row-grid.needs-review-row {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
 .entry-row-grid select,
 .entry-row-grid input {
+  width: 100%;
   padding: 6px 10px;
   font-size: 13px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+  background: #ffffff;
+}
+
+.field-subject-select {
+  font-weight: 600;
+  color: #0f172a;
 }
 
 /* Timetable Display Grid */

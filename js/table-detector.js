@@ -23,24 +23,24 @@ export async function detectImageTableGrid(imageBlob, words = []) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const data = imgData.data;
 
-      // 1. Create Binarized Dark-Pixel Map
+      // 1. Binarize image (1 = dark pixel, 0 = light background)
       const binary = new Uint8Array(width * height);
       for (let i = 0; i < data.length; i += 4) {
         const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
         const idx = i / 4;
-        binary[idx] = gray < 140 ? 1 : 0; // 1 = dark line/text pixel, 0 = light background
+        binary[idx] = gray < 140 ? 1 : 0;
       }
 
-      // 2. Locate Main Timetable Bounding Box using Day/Time & Saturday Y Bounds
+      // 2. Locate Main Timetable Bounding Box
       const tableRegion = findMainTableRegion(words, width, height);
 
-      // 3. Detect Main Period Column X Boundaries from Time Header Words or Vertical Pixel Density
-      const periodColumns = detectPeriodColumns(words, tableRegion, width, binary);
+      // 3. Detect Main Period Column X Boundaries
+      const periodColumns = detectPeriodColumns(words, tableRegion, width);
 
-      // 4. Detect Day Row Y Boundaries from Day Words or Horizontal Pixel Density
-      const dayRows = detectDayRows(words, tableRegion, height, binary);
+      // 4. Detect Day Row Y Boundaries
+      const dayRows = detectDayRows(words, tableRegion, height);
 
-      // 5. Calculate Row-Specific Grid Line Confidence & Reconstruct Merged Cells
+      // 5. Reconstruct Row-Specific Visual Grid Cells with Line Confidence Scoring
       const gridCells = reconstructRowCellsWithConfidence(binary, width, height, dayRows, periodColumns);
 
       resolve({
@@ -69,7 +69,7 @@ function findMainTableRegion(words, width, height) {
   let maxX = Math.round(width * 0.95);
 
   const dayTimeWord = words.find((w) => /day|time|period|p1/i.test(w.text) && w.cy < height * 0.4);
-  if (dayTimeWord) minY = Math.max(0, dayTimeWord.y0 - 20);
+  if (dayTimeWord) minY = Math.max(0, dayTimeWord.y0 - 25);
 
   const satWord = words.find((w) => /sat|saturday/i.test(w.text));
   if (satWord) maxY = Math.min(height, satWord.y1 + 80);
@@ -79,7 +79,7 @@ function findMainTableRegion(words, width, height) {
 
 /* ---------------- 2. Period Column Bounds Detection ---------------- */
 
-function detectPeriodColumns(words, tableRegion, imgWidth, binary) {
+function detectPeriodColumns(words, tableRegion, imgWidth) {
   const defaultSlots = [
     { start_time: "09:15", end_time: "10:15", period_number: 1 },
     { start_time: "10:15", end_time: "11:15", period_number: 2 },
@@ -90,7 +90,6 @@ function detectPeriodColumns(words, tableRegion, imgWidth, binary) {
     { start_time: "03:45", end_time: "04:45", period_number: 7 },
   ];
 
-  // Search for period header words in upper table region
   const headerWords = words.filter(
     (w) => w.cy >= tableRegion.minY - 30 && w.cy <= tableRegion.minY + 90
   );
@@ -122,7 +121,7 @@ function detectPeriodColumns(words, tableRegion, imgWidth, binary) {
     return cols;
   }
 
-  // Fallback: Uniform spatial column divisions
+  // Spatial equal division fallback
   const dayColWidth = Math.round(tableRegion.width * 0.12);
   const startX = tableRegion.minX + dayColWidth;
   const remWidth = tableRegion.maxX - startX;
@@ -144,7 +143,7 @@ function detectPeriodColumns(words, tableRegion, imgWidth, binary) {
 
 /* ---------------- 3. Day Rows Bounds Detection ---------------- */
 
-function detectDayRows(words, tableRegion, imgHeight, binary) {
+function detectDayRows(words, tableRegion, imgHeight) {
   const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayWords = words.filter(
     (w) => /\b(mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday)\b/i.test(w.text) && w.cy >= tableRegion.minY
@@ -158,18 +157,16 @@ function detectDayRows(words, tableRegion, imgHeight, binary) {
       dayRows.push({
         canonicalDay: dayName,
         y0: match.y0 - 10,
-        y1: match.y1 + 15,
+        y1: match.y1 + 18,
         cy: match.cy,
         x1: match.x1,
       });
     }
   }
 
-  // Sort by Y position
   dayRows.sort((a, b) => a.cy - b.cy);
 
   if (dayRows.length === 0) {
-    // Spatial equal division fallback
     const rowHeight = (tableRegion.maxY - tableRegion.minY) / daysOrder.length;
     return daysOrder.map((dayName, idx) => {
       const y0 = Math.round(tableRegion.minY + idx * rowHeight);
@@ -187,12 +184,10 @@ function detectDayRows(words, tableRegion, imgHeight, binary) {
   return dayRows;
 }
 
-/* ---------------- 4. Line Continuity Confidence Scoring & Cell Reconstruction ---------------- */
+/* ---------------- 4. Line Confidence Scoring & Cell Reconstruction ---------------- */
 
 function reconstructRowCellsWithConfidence(binary, imgWidth, imgHeight, dayRows, periodColumns) {
   const gridCells = [];
-
-  // Filter out lunch break columns when mapping period indices
   const classColumns = periodColumns.filter((c) => !c.is_break);
 
   for (const row of dayRows) {
@@ -203,24 +198,21 @@ function reconstructRowCellsWithConfidence(binary, imgWidth, imgHeight, dayRows,
       let span = 1;
       let needsReview = false;
 
-      // Check vertical grid line presence/absence between startCol and subsequent columns
       for (let nextIdx = pIdx + 1; nextIdx < classColumns.length; nextIdx++) {
         const nextCol = classColumns[nextIdx];
         const lineBoundaryX = Math.round((classColumns[nextIdx - 1].x1 + nextCol.x0) / 2);
 
-        // Compute Line Continuity Confidence Score (0.0 to 1.0) for vertical line at lineBoundaryX inside row Y range
         const lineConfidence = calculateVerticalLineConfidence(binary, imgWidth, lineBoundaryX, row.y0, row.y1);
 
         if (lineConfidence > 0.60) {
-          // High confidence: Vertical line is PRESENT -> Separate cell
+          // Line present -> separate cell
           break;
         } else if (lineConfidence < 0.30) {
-          // High confidence: Vertical line is ABSENT -> Merged cell
+          // Line absent -> merged cell
           span++;
         } else {
-          // Ambiguous confidence (0.30 to 0.60) -> Mark cell as Needs Review
+          // Ambiguous line -> merge candidate but flag needsReview
           needsReview = true;
-          // Accept merge candidate but flag for user confirmation
           span++;
         }
       }
@@ -249,13 +241,12 @@ function reconstructRowCellsWithConfidence(binary, imgWidth, imgHeight, dayRows,
   return gridCells;
 }
 
-// Calculate Line Continuity Confidence Score (0.0 = completely absent/blank line, 1.0 = solid continuous grid line)
 function calculateVerticalLineConfidence(binary, imgWidth, targetX, y0, y1) {
   const rowHeight = y1 - y0;
   if (rowHeight <= 0) return 0;
 
   let darkPixelCount = 0;
-  const searchRadius = 2; // Allow small 2px alignment tolerance for handwriting or slant
+  const searchRadius = 2;
 
   for (let y = y0; y <= y1; y++) {
     let foundDark = false;
@@ -274,8 +265,6 @@ function calculateVerticalLineConfidence(binary, imgWidth, targetX, y0, y1) {
 
   return darkPixelCount / rowHeight;
 }
-
-/* ---------------- Fallback Grid ---------------- */
 
 function fallbackGrid(words) {
   return {

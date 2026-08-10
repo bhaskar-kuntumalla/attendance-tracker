@@ -5,12 +5,12 @@
 
 import { requireAuth, showToast, friendlyError, withLoading, escapeHTML } from "./utils.js";
 import { runTimetableOCR } from "./ocr.js";
-import { parseTimetableText, suggestSubjectMerges, DAYS_OF_WEEK, getDefaultPeriods } from "./timetable-parser.js";
+import { parseTimetableText, DAYS_OF_WEEK, getDefaultPeriods } from "./timetable-parser.js";
 import { getTimetableEntries, saveTimetableData, saveTimetableUpload } from "./data.js";
 
 let currentUser = null;
 let currentFile = null;
-let parsedData = null; // { headerMetadata, periods, entries, abbreviationMap, detectedGrid }
+let parsedData = null; // { headerMetadata, periods, entries, referenceSubjects, detectedGrid }
 let existingEntries = [];
 
 // DOM Elements
@@ -117,6 +117,10 @@ function wireUploadControls() {
     parsedData = {
       headerMetadata: {},
       periods: getDefaultPeriods(),
+      referenceSubjects: [
+        { subject_code: "MATH", subject_name: "Mathematics", subject_type: "THEORY" },
+        { subject_code: "DBMS", subject_name: "DBMS Lab", subject_type: "LAB" },
+      ],
       entries: [
         { day_of_week: "Monday", period_number: 1, subject_name: "Mathematics", subject_code: "MATH", subject_type: "THEORY", period_count: 1, start_time: "09:15", end_time: "10:15" },
         { day_of_week: "Monday", period_number: 2, subject_name: "DBMS Lab", subject_code: "DBMS", subject_type: "LAB", period_count: 2, start_time: "10:15", end_time: "12:25" },
@@ -184,7 +188,6 @@ async function startOCRProcess() {
       if (progressInfo.progress >= 95) document.getElementById("step-4").classList.add("completed");
     });
 
-    // Pass image file blob along with OCR text/words to geometry parser
     parsedData = await parseTimetableText(ocrResult, currentFile);
 
     saveTimetableUpload(currentUser.id, {
@@ -199,7 +202,8 @@ async function startOCRProcess() {
         { day_of_week: "Monday", period_number: 1, subject_name: "Subject 1", subject_code: "SUB1", subject_type: "THEORY", period_count: 1, start_time: "09:15", end_time: "10:15" },
       ];
     } else {
-      showToast(`Extracted ${parsedData.entries.length} class entries dynamically! Please verify below.`, "success");
+      const refCount = parsedData.referenceSubjects?.length || 0;
+      showToast(`Reconstructed table grid! Found ${refCount} reference subjects and ${parsedData.entries.length} class sessions.`, "success");
     }
 
     renderVerificationForm();
@@ -224,12 +228,13 @@ function wireVerificationControls() {
     parsedData.entries.push({
       day_of_week: "Monday",
       period_number: (parsedData.entries.length % 6) + 1,
-      subject_name: "New Subject",
+      subject_name: "",
       subject_code: "",
       subject_type: "THEORY",
       period_count: 1,
       start_time: "09:15",
       end_time: "10:15",
+      needsReview: true,
     });
     renderVerificationForm();
   });
@@ -238,6 +243,7 @@ function wireVerificationControls() {
 function renderVerificationForm() {
   const meta = parsedData.headerMetadata || {};
   const hasMeta = meta.branch || meta.semester || meta.section || meta.academicYear;
+  const refList = parsedData.referenceSubjects || [];
 
   let bannerHTML = "";
 
@@ -248,6 +254,16 @@ function renderVerificationForm() {
         ${meta.semester ? `<div><strong>Semester:</strong> ${escapeHTML(meta.semester)}</div>` : ""}
         ${meta.section ? `<div><strong>Section:</strong> ${escapeHTML(meta.section)}</div>` : ""}
         ${meta.academicYear ? `<div><strong>Academic Year:</strong> ${escapeHTML(meta.academicYear)}</div>` : ""}
+      </div>`;
+  }
+
+  if (refList.length > 0) {
+    bannerHTML += `
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Extracted Reference Subjects (${refList.length})</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${refList.map((s) => `<span class="badge ${s.subject_type === "LAB" ? "badge-warning" : "badge-info"}" style="font-size:12px;">${escapeHTML(s.subject_name)} (${s.subject_code})</span>`).join("")}
+        </div>
       </div>`;
   }
 
@@ -273,9 +289,9 @@ function renderVerificationForm() {
         </div>
         <div>
           ${list
-            .map((entry, idx) => {
+            .map((entry) => {
               const globalIdx = parsedData.entries.indexOf(entry);
-              const needsReview = entry.needsReview;
+              const needsReview = entry.needsReview || !entry.subject_name;
 
               return `
                 <div class="entry-row-grid ${needsReview ? "needs-review-row" : ""}" data-entry-idx="${globalIdx}" style="${needsReview ? "background:#fffbeb;border:1px solid #fde68a;" : ""}">
@@ -284,12 +300,25 @@ function renderVerificationForm() {
                       ${DAYS_OF_WEEK.map((d) => `<option value="${d}" ${d === entry.day_of_week ? "selected" : ""}>${d.slice(0, 3)}</option>`).join("")}
                     </select>
                   </div>
-                  <div>
-                    <input type="text" class="field-name" value="${escapeHTML(entry.subject_name)}" placeholder="Subject Name" title="Subject Name" />
-                    ${needsReview ? `<span style="font-size:10px;color:#d97706;font-weight:600;">⚠️ Needs Review</span>` : ""}
+                  <div style="flex:2;">
+                    <!-- Controlled Dropdown Selector from Reference Subjects -->
+                    <select class="field-subject-select" title="Select Subject">
+                      <option value="">-- Select Detected Subject --</option>
+                      ${refList
+                        .map(
+                          (ref) => `
+                        <option value="${ref.subject_code}" data-name="${escapeHTML(ref.subject_name)}" data-type="${ref.subject_type}" ${ref.subject_name === entry.subject_name || ref.subject_code === entry.subject_code ? "selected" : ""}>
+                          ${escapeHTML(ref.subject_name)} (${ref.subject_code})
+                        </option>`
+                        )
+                        .join("")}
+                      <option value="__CUSTOM__" ${entry.subject_name && !refList.some((r) => r.subject_name === entry.subject_name) ? "selected" : ""}>＋ Custom Subject...</option>
+                    </select>
+                    <input type="text" class="field-custom-name" value="${escapeHTML(entry.subject_name || "")}" placeholder="Enter Custom Subject Name" style="display:${entry.subject_name && !refList.some((r) => r.subject_name === entry.subject_name) ? "block" : "none"};margin-top:4px;" />
+                    ${needsReview ? `<span style="font-size:10px;color:#d97706;font-weight:600;display:block;margin-top:2px;">⚠️ Needs Selection / Review</span>` : ""}
                   </div>
                   <div>
-                    <input type="text" class="field-code" value="${escapeHTML(entry.subject_code || "")}" placeholder="Code (e.g. DBMS)" title="Subject Code" />
+                    <input type="text" class="field-code" value="${escapeHTML(entry.subject_code || "")}" placeholder="Code" title="Subject Code" />
                   </div>
                   <div>
                     <select class="field-type" title="Type">
@@ -322,11 +351,40 @@ function renderVerificationForm() {
     const item = parsedData.entries[idx];
     if (!item) return;
 
+    const selectEl = row.querySelector(".field-subject-select");
+    const customInput = row.querySelector(".field-custom-name");
+
+    selectEl.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val === "__CUSTOM__") {
+        customInput.style.display = "block";
+        item.subject_name = customInput.value;
+        item.needsReview = false;
+      } else if (val) {
+        customInput.style.display = "none";
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        item.subject_code = val;
+        item.subject_name = selectedOpt.dataset.name || val;
+        item.subject_type = selectedOpt.dataset.type || "THEORY";
+        item.needsReview = false;
+
+        row.querySelector(".field-code").value = item.subject_code;
+        row.querySelector(".field-type").value = item.subject_type;
+      } else {
+        item.needsReview = true;
+      }
+    });
+
+    customInput.addEventListener("input", (e) => {
+      item.subject_name = e.target.value;
+      item.needsReview = !e.target.value.trim();
+    });
+
     row.querySelector(".field-day").addEventListener("change", (e) => {
       item.day_of_week = e.target.value;
       renderVerificationForm();
     });
-    row.querySelector(".field-name").addEventListener("input", (e) => { item.subject_name = e.target.value; });
+
     row.querySelector(".field-code").addEventListener("input", (e) => { item.subject_code = e.target.value; });
     row.querySelector(".field-type").addEventListener("change", (e) => { item.subject_type = e.target.value; });
     row.querySelector(".field-periods").addEventListener("change", (e) => { item.period_count = parseInt(e.target.value, 10); });
@@ -359,17 +417,14 @@ function drawExtractionDebugGrid() {
     debugCanvas.height = img.naturalHeight || img.height;
     const ctx = debugCanvas.getContext("2d");
 
-    // 1. Draw raw image
     ctx.drawImage(img, 0, 0);
 
-    // 2. Draw Table Region Box (Red)
     if (grid.tableRegion) {
       ctx.strokeStyle = "#ef4444";
       ctx.lineWidth = 4;
       ctx.strokeRect(grid.tableRegion.minX, grid.tableRegion.minY, grid.tableRegion.width, grid.tableRegion.height);
     }
 
-    // 3. Draw Period Column Lines (Blue Dashed)
     if (grid.periodColumns) {
       ctx.strokeStyle = "#2563eb";
       ctx.lineWidth = 2;
@@ -383,7 +438,6 @@ function drawExtractionDebugGrid() {
       ctx.setLineDash([]);
     }
 
-    // 4. Draw Day Row Lines (Green Solid)
     if (grid.dayRows) {
       ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 2;
@@ -395,7 +449,6 @@ function drawExtractionDebugGrid() {
       }
     }
 
-    // 5. Draw Reconstructed Cell Boxes (Yellow Overlay + Text Labels)
     if (grid.gridCells) {
       for (const cell of grid.gridCells) {
         ctx.fillStyle = cell.needsReview ? "rgba(245, 158, 11, 0.35)" : "rgba(253, 224, 71, 0.25)";
@@ -407,7 +460,6 @@ function drawExtractionDebugGrid() {
         ctx.fillRect(cell.bbox.x0, cell.bbox.y0, w, h);
         ctx.strokeRect(cell.bbox.x0, cell.bbox.y0, w, h);
 
-        // Find corresponding entry text
         const entry = parsedData.entries.find(
           (e) => e.day_of_week === cell.day_of_week && e.period_number === cell.startPeriod
         );
@@ -415,7 +467,7 @@ function drawExtractionDebugGrid() {
         if (entry) {
           ctx.fillStyle = "#0f172a";
           ctx.font = "bold 14px sans-serif";
-          const label = `${entry.subject_name} (${entry.period_count}P)`;
+          const label = `${entry.subject_name || "?"} (${entry.period_count}P)`;
           ctx.fillText(label, cell.bbox.x0 + 4, cell.bbox.y0 + 18);
         }
       }
@@ -428,6 +480,13 @@ function drawExtractionDebugGrid() {
 async function saveConfirmedTimetable() {
   if (!parsedData || !parsedData.entries || !parsedData.entries.length) {
     showToast("Please add at least one timetable entry.", "info");
+    return;
+  }
+
+  // Validate that all entries have a subject assigned
+  const unassigned = parsedData.entries.filter((e) => !e.subject_name || !e.subject_name.trim());
+  if (unassigned.length > 0) {
+    showToast(`Please select or enter a subject name for all ${unassigned.length} flagged class entries.`, "info");
     return;
   }
 
