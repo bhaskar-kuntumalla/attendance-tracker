@@ -1,0 +1,59 @@
+/* ============================================================
+   auth.css — login / signup centered card
+   ============================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 10%, var(--primary-light) 0%, transparent 45%),
+    var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 36px 32px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--primary);
+  margin-bottom: 28px;
+}
+
+.auth-brand .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--primary);
+  transform: rotate(45deg);
+}
+
+.auth-card h1 { font-size: 21px; margin-bottom: 4px; }
+.auth-card .subtitle { font-size: 14px; margin-bottom: 24px; }
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13.5px;
+  color: var(--secondary);
+}
+
+.auth-footer a { color: var(--primary); font-weight: 600; }
+
+@media (max-width: 420px) {
+  .auth-card { padding: 28px 22px; }
+}

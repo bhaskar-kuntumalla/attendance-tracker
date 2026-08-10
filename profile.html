@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Profile — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/profile.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Profile</h1>
+        <div class="subtitle">Your details, semester, and attendance target.</div>
+      </div>
+    </div>
+
+    <div class="card profile-card">
+      <div class="skeleton" id="profile-skeleton" style="height:220px;"></div>
+
+      <form id="profile-form" style="display:none;" novalidate>
+        <div class="profile-avatar" id="avatar-initial">?</div>
+
+        <div class="field">
+          <label>Email</label>
+          <div class="field-readonly" id="email-readonly">—</div>
+        </div>
+
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" name="fullName" />
+          <div class="field-error"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="rollNumber">Roll Number</label>
+            <input type="text" id="rollNumber" name="rollNumber" />
+            <div class="field-error"></div>
+          </div>
+          <div class="field">
+            <label for="semester">Semester</label>
+            <input type="text" id="semester" name="semester" placeholder="e.g. Semester 5" />
+          </div>
+          <div class="field">
+            <label for="academicYear">Academic Year</label>
+            <input type="text" id="academicYear" name="academicYear" placeholder="2026-2027" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="attendanceTarget">Attendance Target (%)</label>
+          <input type="number" id="attendanceTarget" name="attendanceTarget" min="1" max="100" />
+          <div class="field-error"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:15px;margin-bottom:2px;">Timetable Configuration</h3>
+          <p class="text-sm" style="color:#64748b;">Manage your weekly class schedule & period timings.</p>
+        </div>
+        <a href="timetable.html" class="btn btn-secondary btn-sm">Timetable Settings</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:4px;">Change Password</h3>
+      <p class="text-sm" style="margin-bottom:16px;">Choose a new password for your account.</p>
+
+      <form id="password-form" novalidate>
+        <div class="form-error-banner"></div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" name="newPassword" autocomplete="new-password" placeholder="At least 6 characters" />
+            <div class="field-error"></div>
+          </div>
+          <div class="field">
+            <label for="confirmNewPassword">Confirm Password</label>
+            <input type="password" id="confirmNewPassword" name="confirmNewPassword" autocomplete="new-password" />
+            <div class="field-error"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-secondary btn-block">Update Password</button>
+      </form>
+    </div>
+
+    <div class="card danger-zone">
+      <h3 style="font-size:14px;">Log Out</h3>
+      <p class="text-sm">Sign out of your account on this device.</p>
+      <button class="btn btn-danger" data-logout>Logout</button>
+    </div>
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initProfile } from "./js/profile.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initProfile();
+</script>
+</body>
+</html>

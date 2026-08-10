@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mark Attendance — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/attendance.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Mark Attendance</h1>
+        <div class="subtitle">Select date to view scheduled classes or switch to all subjects mode.</div>
+      </div>
+      <button id="toggle-view-mode-btn" class="btn btn-secondary btn-sm">Show All Subjects</button>
+    </div>
+
+    <div class="date-bar">
+      <span class="date-label">Date:</span>
+      <input type="date" id="attendance-date" />
+      <span class="date-label" id="date-label"></span>
+    </div>
+
+    <div id="mark-list">
+      <div class="skeleton" style="height:60px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:60px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:60px;"></div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn-primary btn-block" id="save-attendance-btn">Save Attendance</button>
+    </div>
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initAttendance } from "./js/attendance.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initAttendance();
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+/* ============================================================
+   attendance.css — the "mark attendance in a few seconds" page
+   ============================================================ */
+
+.date-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.date-bar input[type="date"] {
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.date-bar .date-label { font-size: 13px; color: var(--secondary); }
+
+.mark-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  margin-bottom: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mark-row.highlight { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+.mark-row .info { flex: 1; min-width: 0; }
+.mark-row .subject-name { font-weight: 700; font-size: 14.5px; }
+.mark-row .periods-note { font-size: 12px; color: var(--secondary); margin-top: 2px; }
+
+.mark-row .periods-input {
+  width: 52px;
+  padding: 8px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.status-toggle {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.status-toggle button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--secondary);
+  transition: all 0.15s;
+}
+
+.status-toggle button[data-status="present"].active { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+.status-toggle button[data-status="absent"].active { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.status-toggle button[data-status="cancelled"].active { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
+
+.save-bar {
+  position: sticky;
+  bottom: 16px;
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .mark-row { flex-wrap: wrap; }
+  .status-toggle { width: 100%; justify-content: stretch; }
+  .status-toggle button { flex: 1; }
+  .mark-row .periods-input { order: 3; }
+}
+
+@media (max-width: 900px) {
+  .save-bar { bottom: calc(var(--bottomnav-h) + 12px); }
+}

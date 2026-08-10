@@ -1,0 +1,41 @@
+/* ============================================================
+   subjects.css
+   ============================================================ */
+
+.subject-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subject-card .top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.subject-card .subject-name { font-size: 15.5px; font-weight: 700; }
+.subject-card .weekly-tag { font-size: 12px; color: var(--secondary); margin-top: 2px; }
+
+.subject-card .big-pct {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  margin: 2px 0;
+}
+
+.subject-card .periods-line { font-size: 13px; color: var(--secondary); }
+
+.subject-card .card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.subject-card .card-actions .btn { padding: 8px 6px; font-size: 12px; }
+
+/* Confirm-delete modal body */
+.confirm-text { font-size: 14px; color: var(--text); }
+.confirm-text strong { color: var(--danger); }

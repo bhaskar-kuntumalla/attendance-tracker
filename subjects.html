@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Subjects — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/subjects.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Subjects</h1>
+        <div class="subtitle">Manage all theory & lab subjects tracked in your timetable.</div>
+      </div>
+      <button class="btn btn-primary" id="add-subject-btn">+ Add Subject</button>
+    </div>
+
+    <div class="card-grid" id="subjects-grid">
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+    </div>
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<!-- Add / Edit Subject Modal -->
+<div class="modal-overlay" id="subject-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Subject</h3>
+      <button class="modal-close" aria-label="Close">&times;</button>
+    </div>
+    <form id="subject-form" novalidate>
+      <div class="form-error-banner"></div>
+      
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label for="subjectName">Subject Name</label>
+          <input type="text" id="subjectName" name="subjectName" placeholder="Database Management Systems" />
+          <div class="field-error"></div>
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="subjectCode">Subject Code</label>
+          <input type="text" id="subjectCode" name="subjectCode" placeholder="DBMS" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="subjectType">Type</label>
+          <select id="subjectType" name="subjectType" style="padding:10px;border:1px solid #cbd5e1;border-radius:10px;width:100%;font-size:14px;">
+            <option value="THEORY">Theory</option>
+            <option value="LAB">Lab</option>
+            <option value="TUTORIAL">Tutorial</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="weeklyPeriods">Weekly Periods</label>
+          <input type="number" id="weeklyPeriods" name="weeklyPeriods" min="1" placeholder="4" />
+          <div class="field-error"></div>
+        </div>
+        <div class="field">
+          <label for="defaultPeriods">Default / Class</label>
+          <input type="number" id="defaultPeriods" name="defaultPeriods" min="1" value="1" />
+          <div class="field-error"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Save Subject</button>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Delete Subject</h3>
+      <button class="modal-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="confirm-text">
+      Are you sure you want to delete <strong id="delete-subject-name">this subject</strong>?
+      Its entire attendance history will also be permanently deleted. This can't be undone.
+    </p>
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-secondary btn-block" id="cancel-delete-btn">Cancel</button>
+      <button class="btn btn-danger btn-block" id="confirm-delete-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initSubjects } from "./js/subjects.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initSubjects();
+</script>
+</body>
+</html>

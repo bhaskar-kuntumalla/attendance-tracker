@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Period Settings — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/period-settings.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Period Settings</h1>
+        <div class="subtitle">Customize college period timings, lunch breaks, and period names.</div>
+      </div>
+      <a href="timetable.html" class="btn btn-secondary btn-sm">← Back to Timetable</a>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="font-size:18px;font-weight:700;">College Timings</h2>
+        <div style="display:flex;gap:10px;">
+          <button id="add-period-btn" class="btn btn-secondary btn-sm">+ Add Period</button>
+          <button id="reset-defaults-btn" class="btn btn-ghost btn-sm">Reset Defaults</button>
+        </div>
+      </div>
+
+      <p class="text-sm" style="color:#64748b;margin-bottom:20px;">Configure start and end times for each period slot. Timetable entries automatically align with these times.</p>
+
+      <div class="period-list" id="period-list">
+        <!-- Dynamically populated -->
+      </div>
+
+      <div style="margin-top:24px;display:flex;justify-content:flex-end;">
+        <button id="save-periods-btn" class="btn btn-primary">Save Period Settings</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initPeriods } from "./js/periods.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initPeriods();
+</script>
+</body>
+</html>

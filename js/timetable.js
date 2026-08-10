@@ -1,0 +1,459 @@
+// ============================================================
+// timetable.js — Controller for timetable.html
+// Manages image upload, client OCR, verification, and grid view.
+// ============================================================
+
+import { requireAuth, showToast, friendlyError, withLoading, escapeHTML } from "./utils.js";
+import { runTimetableOCR } from "./ocr.js";
+import { parseTimetableText, suggestSubjectMerges, DAYS_OF_WEEK, getDefaultPeriods } from "./timetable-parser.js";
+import { getTimetableEntries, saveTimetableData, getSubjects, saveTimetableUpload, getPeriods } from "./data.js";
+
+let currentUser = null;
+let currentFile = null;
+let parsedData = null; // { periods, entries }
+let existingEntries = [];
+
+// DOM Elements
+const setupContainer = document.getElementById("setup-container");
+const verificationContainer = document.getElementById("verification-container");
+const viewContainer = document.getElementById("view-container");
+const resetBtn = document.getElementById("reset-timetable-btn");
+
+const optUpload = document.getElementById("opt-upload");
+const optManual = document.getElementById("opt-manual");
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("timetable-file-input");
+const browseBtn = document.getElementById("browse-btn");
+const previewBox = document.getElementById("preview-box");
+const previewImg = document.getElementById("preview-img");
+const previewFilename = document.getElementById("preview-filename");
+const removeImgBtn = document.getElementById("remove-img-btn");
+const processBtn = document.getElementById("process-ocr-btn");
+
+const ocrProgressCard = document.getElementById("ocr-progress");
+const progressBarFill = document.getElementById("progress-bar-fill");
+const progressStatusText = document.getElementById("progress-status-text");
+const progressPctText = document.getElementById("progress-pct-text");
+
+const verificationDaysList = document.getElementById("verification-days-list");
+const dedupBannerSlot = document.getElementById("dedup-banner-slot");
+const confirmBtnTop = document.getElementById("confirm-timetable-btn");
+const confirmBtnBottom = document.getElementById("confirm-timetable-btn-bottom");
+const cancelVerifyBtn = document.getElementById("cancel-verification-btn");
+const addEntryBtn = document.getElementById("add-entry-btn");
+
+const gridBody = document.getElementById("grid-body");
+const mobileList = document.getElementById("mobile-timetable-list");
+
+export async function initTimetable() {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+
+  wireUploadControls();
+  wireVerificationControls();
+
+  await checkExistingTimetable();
+}
+
+async function checkExistingTimetable() {
+  try {
+    existingEntries = await getTimetableEntries(currentUser.id);
+    if (existingEntries && existingEntries.length > 0) {
+      showViewScreen(existingEntries);
+      resetBtn.style.display = "inline-flex";
+      resetBtn.addEventListener("click", () => showSetupScreen());
+    } else {
+      showSetupScreen();
+    }
+  } catch (err) {
+    showToast(friendlyError(err), "error");
+    showSetupScreen();
+  }
+}
+
+function showSetupScreen() {
+  setupContainer.style.display = "block";
+  verificationContainer.style.display = "none";
+  viewContainer.style.display = "none";
+  resetBtn.style.display = "none";
+}
+
+function showVerificationScreen() {
+  setupContainer.style.display = "none";
+  verificationContainer.style.display = "block";
+  viewContainer.style.display = "none";
+}
+
+function showViewScreen(entries) {
+  setupContainer.style.display = "none";
+  verificationContainer.style.display = "none";
+  viewContainer.style.display = "block";
+  renderGrid(entries);
+}
+
+/* ---------------- Upload & OCR Wiring ---------------- */
+
+function wireUploadControls() {
+  optUpload.addEventListener("click", () => {
+    optUpload.classList.add("active");
+    optManual.classList.remove("active");
+    dropzone.style.display = "block";
+  });
+
+  optManual.addEventListener("click", () => {
+    optManual.classList.add("active");
+    optUpload.classList.remove("active");
+    // Generate empty timetable structure for manual entry
+    parsedData = {
+      periods: getDefaultPeriods(),
+      entries: [
+        { day_of_week: "Monday", period_number: 1, subject_name: "Mathematics", subject_code: "MATH", subject_type: "THEORY", period_count: 1, start_time: "09:00", end_time: "10:00" },
+        { day_of_week: "Monday", period_number: 2, subject_name: "DBMS Lab", subject_code: "DBMS", subject_type: "LAB", period_count: 2, start_time: "10:00", end_time: "12:00" },
+      ],
+    };
+    renderVerificationForm();
+    showVerificationScreen();
+  });
+
+  browseBtn.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("click", (e) => {
+    if (e.target !== browseBtn) fileInput.click();
+  });
+
+  fileInput.addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) handleFileSelected(e.target.files[0]);
+  });
+
+  // Drag and drop
+  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("dragover");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFileSelected(e.dataTransfer.files[0]);
+  });
+
+  removeImgBtn.addEventListener("click", () => {
+    currentFile = null;
+    fileInput.value = "";
+    previewBox.style.display = "none";
+    dropzone.style.display = "block";
+  });
+
+  processBtn.addEventListener("click", startOCRProcess);
+}
+
+function handleFileSelected(file) {
+  currentFile = file;
+  previewFilename.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+  const url = URL.createObjectURL(file);
+  previewImg.src = url;
+
+  dropzone.style.display = "none";
+  previewBox.style.display = "block";
+}
+
+async function startOCRProcess() {
+  if (!currentFile) {
+    showToast("Please select a timetable image first.", "info");
+    return;
+  }
+
+  ocrProgressCard.style.display = "block";
+  processBtn.disabled = true;
+
+  try {
+    const ocrResult = await runTimetableOCR(currentFile, (progressInfo) => {
+      progressBarFill.style.width = `${progressInfo.progress}%`;
+      progressPctText.textContent = `${progressInfo.progress}%`;
+      progressStatusText.textContent = progressInfo.message;
+
+      // Update step indicators
+      if (progressInfo.progress >= 20) document.getElementById("step-1").classList.add("completed");
+      if (progressInfo.progress >= 35) document.getElementById("step-2").classList.add("completed");
+      if (progressInfo.progress >= 70) document.getElementById("step-3").classList.add("completed");
+      if (progressInfo.progress >= 95) document.getElementById("step-4").classList.add("completed");
+    });
+
+    // Parse raw OCR text into structured format
+    parsedData = parseTimetableText(ocrResult.rawText);
+
+    // Save OCR log record in background
+    saveTimetableUpload(currentUser.id, {
+      fileType: currentFile.type,
+      rawText: ocrResult.rawText,
+      parsedData,
+    }).catch((e) => console.warn("Upload record log warning:", e));
+
+    if (!parsedData.entries || parsedData.entries.length === 0) {
+      showToast("Could not detect clear timetable structure. Switching to manual verification mode.", "info");
+      parsedData.entries = [
+        { day_of_week: "Monday", period_number: 1, subject_name: "Subject 1", subject_code: "SUB1", subject_type: "THEORY", period_count: 1, start_time: "09:00", end_time: "10:00" },
+      ];
+    } else {
+      showToast(`Detected ${parsedData.entries.length} class entries! Please verify below.`, "success");
+    }
+
+    renderVerificationForm();
+    showVerificationScreen();
+  } catch (err) {
+    showToast(friendlyError(err), "error");
+  } finally {
+    ocrProgressCard.style.display = "none";
+    processBtn.disabled = false;
+  }
+}
+
+/* ---------------- Verification Screen Wiring ---------------- */
+
+function wireVerificationControls() {
+  cancelVerifyBtn.addEventListener("click", () => showSetupScreen());
+
+  confirmBtnTop.addEventListener("click", saveConfirmedTimetable);
+  confirmBtnBottom.addEventListener("click", saveConfirmedTimetable);
+
+  addEntryBtn.addEventListener("click", () => {
+    parsedData.entries.push({
+      day_of_week: "Monday",
+      period_number: (parsedData.entries.length % 6) + 1,
+      subject_name: "New Subject",
+      subject_code: "",
+      subject_type: "THEORY",
+      period_count: 1,
+      start_time: "09:00",
+      end_time: "10:00",
+    });
+    renderVerificationForm();
+  });
+}
+
+function renderVerificationForm() {
+  // Check for deduplication suggestions
+  const mergeSuggestions = suggestSubjectMerges(parsedData.entries);
+  const duplicates = mergeSuggestions.filter((m) => m.occurrences.length > 1);
+
+  if (duplicates.length > 0) {
+    dedupBannerSlot.innerHTML = `
+      <div class="dedup-banner">
+        <div>
+          <div class="dedup-title">Possible Duplicate Subject Variations Found</div>
+          <div style="font-size:12px;color:#78350f;">
+            ${duplicates.map((d) => `"${d.canonicalName}" (${d.count} times)`).join(", ")}
+          </div>
+        </div>
+        <button id="merge-subjects-btn" class="btn btn-secondary btn-sm">Auto-Merge Names</button>
+      </div>`;
+
+    document.getElementById("merge-subjects-btn")?.addEventListener("click", () => {
+      for (const d of duplicates) {
+        for (const occ of d.occurrences) {
+          occ.subject_name = d.canonicalName;
+        }
+      }
+      showToast("Merged subject name variations.", "success");
+      renderVerificationForm();
+    });
+  } else {
+    dedupBannerSlot.innerHTML = "";
+  }
+
+  // Group entries by day
+  const byDay = new Map();
+  for (const day of DAYS_OF_WEEK) byDay.set(day, []);
+  for (const entry of parsedData.entries) {
+    if (!byDay.has(entry.day_of_week)) byDay.set(entry.day_of_week, []);
+    byDay.get(entry.day_of_week).push(entry);
+  }
+
+  verificationDaysList.innerHTML = DAYS_OF_WEEK.map((day) => {
+    const list = byDay.get(day) || [];
+    if (!list.length) return "";
+
+    return `
+      <div class="day-section">
+        <div class="day-section-title">
+          <span>${day}</span>
+          <span style="font-size:12px;font-weight:500;color:#64748b;">${list.length} class${list.length > 1 ? "es" : ""}</span>
+        </div>
+        <div>
+          ${list
+            .map((entry, idx) => {
+              const globalIdx = parsedData.entries.indexOf(entry);
+              return `
+                <div class="entry-row-grid" data-entry-idx="${globalIdx}">
+                  <div>
+                    <select class="field-day" title="Day">
+                      ${DAYS_OF_WEEK.map((d) => `<option value="${d}" ${d === entry.day_of_week ? "selected" : ""}>${d.slice(0, 3)}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <input type="text" class="field-name" value="${escapeHTML(entry.subject_name)}" placeholder="Subject Name" title="Subject Name" />
+                  </div>
+                  <div>
+                    <input type="text" class="field-code" value="${escapeHTML(entry.subject_code || "")}" placeholder="Code (e.g. DBMS)" title="Subject Code" />
+                  </div>
+                  <div>
+                    <select class="field-type" title="Type">
+                      <option value="THEORY" ${entry.subject_type === "THEORY" ? "selected" : ""}>Theory</option>
+                      <option value="LAB" ${entry.subject_type === "LAB" ? "selected" : ""}>Lab</option>
+                      <option value="TUTORIAL" ${entry.subject_type === "TUTORIAL" ? "selected" : ""}>Tutorial</option>
+                      <option value="OTHER" ${entry.subject_type === "OTHER" ? "selected" : ""}>Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <select class="field-periods" title="Period Count">
+                      <option value="1" ${entry.period_count === 1 ? "selected" : ""}>1 period</option>
+                      <option value="2" ${entry.period_count === 2 ? "selected" : ""}>2 periods</option>
+                      <option value="3" ${entry.period_count === 3 ? "selected" : ""}>3 periods</option>
+                      <option value="4" ${entry.period_count === 4 ? "selected" : ""}>4 periods</option>
+                    </select>
+                  </div>
+                  <div>
+                    <button class="btn btn-ghost btn-sm remove-entry-btn" style="color:#ef4444;" title="Delete">✕</button>
+                  </div>
+                </div>`;
+            })
+            .join("")}
+        </div>
+      </div>`;
+  }).join("");
+
+  // Attach live event listeners to editable fields
+  verificationDaysList.querySelectorAll(".entry-row-grid").forEach((row) => {
+    const idx = parseInt(row.dataset.entryIdx, 10);
+    const item = parsedData.entries[idx];
+    if (!item) return;
+
+    row.querySelector(".field-day").addEventListener("change", (e) => {
+      item.day_of_week = e.target.value;
+      renderVerificationForm();
+    });
+    row.querySelector(".field-name").addEventListener("input", (e) => { item.subject_name = e.target.value; });
+    row.querySelector(".field-code").addEventListener("input", (e) => { item.subject_code = e.target.value; });
+    row.querySelector(".field-type").addEventListener("change", (e) => {
+      item.subject_type = e.target.value;
+      if (item.subject_type === "LAB" && item.period_count === 1) {
+        item.period_count = 2;
+        row.querySelector(".field-periods").value = "2";
+      }
+    });
+    row.querySelector(".field-periods").addEventListener("change", (e) => { item.period_count = parseInt(e.target.value, 10); });
+    row.querySelector(".remove-entry-btn").addEventListener("click", () => {
+      parsedData.entries.splice(idx, 1);
+      renderVerificationForm();
+    });
+  });
+}
+
+async function saveConfirmedTimetable() {
+  if (!parsedData || !parsedData.entries || !parsedData.entries.length) {
+    showToast("Please add at least one timetable entry.", "info");
+    return;
+  }
+
+  // Generate unique subjects summary from verified entries
+  const subjectsToCreateMap = new Map();
+  for (const entry of parsedData.entries) {
+    const name = entry.subject_name.trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+
+    if (!subjectsToCreateMap.has(key)) {
+      subjectsToCreateMap.set(key, {
+        subject_name: name,
+        subject_code: entry.subject_code || "",
+        subject_type: entry.subject_type || "THEORY",
+        weekly_periods: entry.period_count || 1,
+      });
+    } else {
+      const sub = subjectsToCreateMap.get(key);
+      sub.weekly_periods += entry.period_count || 1;
+    }
+  }
+
+  const subjectsToCreate = Array.from(subjectsToCreateMap.values());
+
+  await withLoading(confirmBtnBottom, "Saving Timetable...", async () => {
+    try {
+      const saved = await saveTimetableData(currentUser.id, {
+        periods: parsedData.periods || getDefaultPeriods(),
+        subjects: subjectsToCreate,
+        entries: parsedData.entries,
+      });
+
+      showToast("Timetable saved and subjects created successfully!", "success");
+      await checkExistingTimetable();
+    } catch (err) {
+      showToast(friendlyError(err), "error");
+    }
+  });
+}
+
+/* ---------------- Render Grid View ---------------- */
+
+function renderGrid(entries) {
+  // Days Mon-Sat
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const maxPeriods = 7;
+
+  let gridHTML = "";
+  for (let pNum = 1; pNum <= maxPeriods; pNum++) {
+    const timeLabel = `Period ${pNum}`;
+    gridHTML += `
+      <tr>
+        <td style="font-weight:600;color:#64748b;">${timeLabel}</td>
+        ${days
+          .map((day) => {
+            const entry = entries.find((e) => e.day_of_week === day && e.period_id && e.period_id.includes ? true : (e.day_of_week === day));
+            const dayEntries = entries.filter((e) => e.day_of_week === day);
+            const classItem = dayEntries[pNum - 1];
+
+            if (!classItem) return `<td>—</td>`;
+
+            const sub = classItem.subject || { subject_name: "Class" };
+            const typeClass = classItem.period_count > 1 ? "type-lab" : "type-theory";
+
+            return `
+              <td>
+                <div class="cell-subject-name">${escapeHTML(sub.subject_name)}</div>
+                <span class="cell-type-tag ${typeClass}">
+                  ${classItem.period_count > 1 ? `${classItem.period_count} periods` : (sub.subject_type || "Theory")}
+                </span>
+              </td>`;
+          })
+          .join("")}
+      </tr>`;
+  }
+
+  gridBody.innerHTML = gridHTML;
+
+  // Mobile list rendering
+  mobileList.innerHTML = days
+    .map((day) => {
+      const dayEntries = entries.filter((e) => e.day_of_week === day);
+      if (!dayEntries.length) return "";
+
+      return `
+        <div class="mobile-day-card">
+          <div class="mobile-day-header">${day}</div>
+          <div>
+            ${dayEntries
+              .map((e) => {
+                const sub = e.subject || { subject_name: "Class" };
+                return `
+                  <div class="mobile-class-item">
+                    <div>
+                      <div style="font-weight:600;">${escapeHTML(sub.subject_name)}</div>
+                      <div style="font-size:12px;color:#64748b;">${e.start_time || ""} - ${e.end_time || ""}</div>
+                    </div>
+                    <span class="cell-type-tag ${e.period_count > 1 ? "type-lab" : "type-theory"}">
+                      ${e.period_count > 1 ? `${e.period_count} Periods` : "1 Period"}
+                    </span>
+                  </div>`;
+              })
+              .join("")}
+          </div>
+        </div>`;
+    })
+    .join("");
+}

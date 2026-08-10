@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How It Works — Attendance Tracker</title>
+<meta name="description" content="A complete, student-friendly guide to using Attendance Tracker — from creating your account to hitting your attendance target." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/landing.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body class="public-page">
+
+<div id="public-header-slot"></div>
+
+<!-- Guide intro -->
+<section class="section guide-intro">
+  <span class="hero-eyebrow">Complete Guide</span>
+  <h1 class="hero-title">How Attendance Tracker works</h1>
+  <p class="hero-lead">Everything the app does, in plain language — from creating your account to knowing exactly how many classes you can afford to miss.</p>
+  <div class="hero-actions">
+    <a href="signup.html" class="btn btn-primary" data-guest-only>Create Your Account</a>
+    <a href="login.html" class="btn btn-secondary" data-guest-only>Already registered? Log In</a>
+    <a href="dashboard.html" class="btn btn-primary" data-auth-only style="display:none;">Go to Dashboard</a>
+  </div>
+  <nav class="jump-nav">
+    <a href="#welcome">Welcome</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#subjects">Subjects</a>
+    <a href="#attendance">Mark Attendance</a>
+    <a href="#analytics">Analytics</a>
+    <a href="#profile">Profile</a>
+    <a href="#calculation">Calculation</a>
+    <a href="#goal">Reaching Your Goal</a>
+    <a href="#install">Install as an App</a>
+  </nav>
+</section>
+
+<!-- FEATURE 1: Welcome to Attendance Tracker -->
+<section class="section" id="welcome">
+  <div class="section-header">
+    <div class="section-eyebrow">Welcome</div>
+    <h2 class="section-heading">What Attendance Tracker does</h2>
+    <p class="section-sub">Attendance Tracker is a lightweight web app built for students who need to know, at a glance, whether they're safely above their attendance target — not just what their attendance was last week, but what it needs to be next week.</p>
+  </div>
+  <p style="max-width:720px;font-size:14.5px;line-height:1.7;">Most colleges set a minimum attendance percentage students must maintain per subject. Falling below it can mean losing exam eligibility. Attendance Tracker keeps a running, period-by-period record of your presence in every subject, works out your percentage the same way your institution does, and tells you — in real numbers — how many classes you need to attend to get back on track, or how many you can safely miss and stay there.</p>
+  <div class="concept-list">
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Track attendance subject-wise</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Record present, absent, and cancelled periods</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>View your overall attendance at a glance</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>See each subject's attendance separately</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>See how many classes you need to reach target</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>See how many you can miss and stay safe</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Browse your full attendance history</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Analyze trends across subjects</div>
+  </div>
+</section>
+
+<!-- FEATURE 2: Complete workflow -->
+<section class="section" id="workflow">
+  <div class="section-header">
+    <div class="section-eyebrow">The Full Picture</div>
+    <h2 class="section-heading">The complete workflow</h2>
+    <p class="section-sub">Eight steps, start to finish. You'll only do the first two once — the rest become a quick daily or weekly habit.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-marker">1</div>
+      <div class="timeline-body">
+        <h3>Create Account</h3>
+        <p>Sign up with your name, roll number, semester, email, and password, and set your attendance target percentage (75% by default — change it to match your college's requirement).</p>
+        <a href="signup.html" class="btn btn-primary btn-sm" data-guest-only>Create Account</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">2</div>
+      <div class="timeline-body">
+        <h3>Login</h3>
+        <p>Log back in with your email and password any time. Your session stays signed in on that device until you log out.</p>
+        <a href="login.html" class="btn btn-secondary btn-sm" data-guest-only>Log In</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">3</div>
+      <div class="timeline-body">
+        <h3>Create Subjects</h3>
+        <p>Add each subject you're tracking — its name, how many periods it runs per week, and how many periods count as one class by default.</p>
+        <a href="subjects.html" class="btn btn-secondary btn-sm">Open Subjects</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">4</div>
+      <div class="timeline-body">
+        <h3>Set Subject Period Information</h3>
+        <p>Weekly periods and default periods per class tell the app how to pre-fill attendance entries, and how many periods a single class session is worth when it calculates your percentage.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">5</div>
+      <div class="timeline-body">
+        <h3>Record Attendance</h3>
+        <p>Pick a date, mark each subject present, absent, or cancelled, adjust the period count if needed, and save. Every record is stored against your account through Supabase, so it's private to you and available wherever you log in.</p>
+        <a href="attendance.html" class="btn btn-secondary btn-sm">Record Attendance</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">6</div>
+      <div class="timeline-body">
+        <h3>View Dashboard</h3>
+        <p>Your dashboard opens to your overall attendance percentage, a present/absent/total breakdown, and a per-subject list with a SAFE, NEEDS ATTENTION, or CRITICAL status at a glance.</p>
+        <a href="dashboard.html" class="btn btn-secondary btn-sm">Open Dashboard</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">7</div>
+      <div class="timeline-body">
+        <h3>Check Analytics</h3>
+        <p>Go deeper — an overview of your best and worst subjects, a what-if simulator, a full filterable history, and a running total of periods missed.</p>
+        <a href="analytics.html" class="btn btn-secondary btn-sm">View Analytics</a>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-marker">8</div>
+      <div class="timeline-body">
+        <h3>Track Your Attendance Goal</h3>
+        <p>The Simulator tab tells you, per subject, exactly how many upcoming classes you need to attend to reach your target — or how many you can still afford to miss.</p>
+        <a href="analytics.html?tab=simulator" class="btn btn-secondary btn-sm">Open Simulator</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE 3 & 4: Signup / existing user explanation -->
+<section class="section">
+  <div class="split-grid">
+    <div class="split-card" data-guest-only>
+      <h3>New here?</h3>
+      <p>Click Create Account, enter your details, and you're straight into your dashboard — ready to add your first subject.</p>
+      <a href="signup.html" class="btn btn-primary">Create Your Account</a>
+    </div>
+    <div class="split-card accent" data-guest-only>
+      <h3>Already registered?</h3>
+      <p>Welcome back — log in to pick up your attendance tracking exactly where you left off. You won't need to sign up again.</p>
+      <a href="login.html" class="btn" style="background:#fff;color:var(--primary-dark);">Log In</a>
+    </div>
+    <div class="split-card accent" data-auth-only style="display:none;grid-column:1 / -1;">
+      <h3>You're already signed in</h3>
+      <p>No need to create another account — jump straight back into your attendance.</p>
+      <a href="dashboard.html" class="btn" style="background:#fff;color:var(--primary-dark);">Go to Dashboard</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE 7: Dashboard -->
+<section class="section" id="dashboard">
+  <div class="section-header">
+    <div class="section-eyebrow">Step 6</div>
+    <h2 class="section-heading">Dashboard</h2>
+    <p class="section-sub">Your dashboard is the quick-glance summary — the first thing you see after logging in.</p>
+  </div>
+  <div class="concept-list" style="margin-top:0;margin-bottom:24px;">
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Overall attendance percentage</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Total, present, and absent periods</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Subject-wise attendance list</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>SAFE / NEEDS ATTENTION / CRITICAL status per subject</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Your target attendance percentage</div>
+    <div class="concept-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Quick actions to add a subject or mark attendance</div>
+  </div>
+  <a href="dashboard.html" class="btn btn-primary">Open Dashboard</a>
+</section>
+
+<!-- FEATURE 8: Subjects -->
+<section class="section" id="subjects">
+  <div class="section-header">
+    <div class="section-eyebrow">Step 3</div>
+    <h2 class="section-heading">Subjects</h2>
+    <p class="section-sub">Create your subjects first — attendance can't be recorded until at least one exists.</p>
+  </div>
+  <div class="step-grid with-connectors">
+    <div class="step-card"><div class="step-num">1</div><h3>Open Subjects</h3><p>From the sidebar or bottom nav.</p></div>
+    <div class="step-card"><div class="step-num">2</div><h3>Add a subject</h3><p>Tap "+ Add Subject".</p></div>
+    <div class="step-card"><div class="step-num">3</div><h3>Enter details</h3><p>Name, weekly periods, default periods per class.</p></div>
+    <div class="step-card"><div class="step-num">4</div><h3>Save it</h3><p>It appears in your subjects grid instantly.</p></div>
+    <div class="step-card"><div class="step-num">5</div><h3>Use it</h3><p>It's now available when you mark attendance.</p></div>
+  </div>
+  <p style="font-size:13.5px;margin-top:16px;">You can edit a subject's details or delete it at any time — deleting a subject also permanently removes its attendance history.</p>
+  <a href="subjects.html" class="btn btn-primary mt-16">Open Subjects</a>
+</section>
+
+<!-- FEATURE 9: Mark attendance -->
+<section class="section" id="attendance">
+  <div class="section-header">
+    <div class="section-eyebrow">Step 5</div>
+    <h2 class="section-heading">Mark Attendance</h2>
+    <p class="section-sub">The fastest page in the app — built for marking a whole day's classes in a few taps.</p>
+  </div>
+  <div class="step-grid with-connectors">
+    <div class="step-card"><div class="step-num">1</div><h3>Select a date</h3><p>Defaults to today; pick any past date to backfill.</p></div>
+    <div class="step-card"><div class="step-num">2</div><h3>Go subject by subject</h3><p>Every subject you've created is listed for that date.</p></div>
+    <div class="step-card"><div class="step-num">3</div><h3>Mark status</h3><p>Present, Absent, or Cancelled — and adjust the period count if it differs from the default.</p></div>
+    <div class="step-card"><div class="step-num">4</div><h3>Save Attendance</h3><p>One tap saves every subject for that date at once.</p></div>
+  </div>
+  <p style="max-width:720px;font-size:14.5px;line-height:1.7;margin-top:20px;">Attendance is stored per subject, per date, in your own account through Supabase. Marking the same subject and date again updates the existing record instead of creating a duplicate — so it's always safe to go back and correct a mistake. Cancelled periods are recorded but excluded from your percentage, since a class that didn't happen shouldn't count for or against you.</p>
+  <a href="attendance.html" class="btn btn-primary mt-16">Record Attendance</a>
+</section>
+
+<!-- FEATURE 10: Analytics -->
+<section class="section" id="analytics">
+  <div class="section-header">
+    <div class="section-eyebrow">Step 7</div>
+    <h2 class="section-heading">Analytics</h2>
+    <p class="section-sub">Four tabs, each answering a different question about your attendance.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="13" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></div>
+      <h3>Overview</h3>
+      <p>Overall attendance, total/present/absent periods, your best and worst subjects, and how many subjects sit above or below your target — plus a subject-wise attendance chart.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+      <h3>Simulator</h3>
+      <p>Pick a subject and see your current percentage, what it becomes if you attend the next period, what it becomes if you miss it, and how many periods you need or can spare to stay at target.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <h3>History</h3>
+      <p>Every attendance record you've ever saved, filterable by subject, status, and date range — a full audit trail of your term.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg></div>
+      <h3>Absences</h3>
+      <p>Every absence, listed with its date and subject, alongside the total periods you've missed across the term.</p>
+    </div>
+  </div>
+  <a href="analytics.html" class="btn btn-primary mt-16">View Analytics</a>
+</section>
+
+<!-- FEATURE 11: Profile -->
+<section class="section" id="profile">
+  <div class="section-header">
+    <div class="section-eyebrow">Your Account</div>
+    <h2 class="section-heading">Profile</h2>
+    <p class="section-sub">Manage the personal details that power the rest of the app.</p>
+  </div>
+  <p style="max-width:720px;font-size:14.5px;line-height:1.7;">Update your full name, roll number, and semester, change your attendance target percentage — every dashboard, analytics, and simulator figure recalculates against whatever target you set here — and change your password. Your email is shown but can't be edited from this page.</p>
+  <a href="profile.html" class="btn btn-primary mt-16">Open Profile</a>
+</section>
+
+<!-- FEATURE 12: Calculation explanation -->
+<section class="section" id="calculation">
+  <div class="section-header">
+    <div class="section-eyebrow">The Math</div>
+    <h2 class="section-heading">How attendance is calculated</h2>
+    <p class="section-sub">One formula, used consistently everywhere in the app — the dashboard, analytics, and simulator all agree because they all use this.</p>
+  </div>
+  <div class="calc-card">
+    <div>
+      <div class="calc-formula">Attendance % = (Present Periods ÷ Total Periods) × 100</div>
+      <div class="calc-example">
+        Present = 36 periods<br>
+        Total&nbsp;&nbsp;&nbsp;&nbsp;= 40 periods<br><br>
+        Attendance = (36 ÷ 40) × 100<br>
+        <span class="result">= 90%</span>
+      </div>
+    </div>
+    <div class="def-list">
+      <div class="def-item"><div class="def-term">Present</div><div class="def-desc">Periods you attended.</div></div>
+      <div class="def-item"><div class="def-term">Absent</div><div class="def-desc">Periods you missed.</div></div>
+      <div class="def-item"><div class="def-term">Cancelled</div><div class="def-desc">Periods that didn't happen — excluded from the total entirely.</div></div>
+      <div class="def-item"><div class="def-term">Total</div><div class="def-desc">Present + Absent periods (cancelled periods aren't counted).</div></div>
+      <div class="def-item"><div class="def-term">Target %</div><div class="def-desc">The minimum you've set yourself to stay at or above — 75% by default, editable in Profile.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE 13: Goal calculator explanation -->
+<section class="section" id="goal">
+  <div class="section-header">
+    <div class="section-eyebrow">Staying On Target</div>
+    <h2 class="section-heading">"How many classes do I need?"</h2>
+    <p class="section-sub">The Simulator tab on Analytics answers this per subject, using your real attendance record.</p>
+  </div>
+  <div class="split-grid">
+    <div class="split-card">
+      <h3>Below your target</h3>
+      <p>The app works out the smallest number of upcoming classes you'd need to attend, back to back, for your percentage to reach your target again.</p>
+    </div>
+    <div class="split-card">
+      <h3>Above your target</h3>
+      <p>The app works out how many more classes you could miss and still stay at or above your target — so you know exactly how much room you have.</p>
+    </div>
+  </div>
+  <a href="analytics.html?tab=simulator" class="btn btn-primary mt-16">Open Simulator</a>
+</section>
+
+<!-- FEATURE 17: Install as an app -->
+<section class="section" id="install">
+  <div class="section-header">
+    <div class="section-eyebrow">Use It Anywhere</div>
+    <h2 class="section-heading">Install Attendance Tracker as an app</h2>
+    <p class="section-sub">Attendance Tracker is a Progressive Web App — install it on your phone, tablet, or computer and it opens and feels like a native app, with an icon on your home screen and no browser bar.</p>
+  </div>
+  <div class="install-grid">
+    <div class="install-card">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>Android / Chrome</h3>
+      <ul class="install-steps">
+        <li>Open the Attendance Tracker website.</li>
+        <li>Tap the install icon in the address bar, or open the browser menu.</li>
+        <li>Choose "Install app" or "Add to Home Screen".</li>
+      </ul>
+    </div>
+    <div class="install-card">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Desktop</h3>
+      <ul class="install-steps">
+        <li>Open the site in a supported browser (Chrome, Edge).</li>
+        <li>Use the browser's Install option, usually in the address bar.</li>
+        <li>Launch Attendance Tracker like any other application.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--secondary);margin-top:16px;">Exact menu wording varies by browser and OS version. Once installed, the app keeps working offline for pages you've already visited, and syncs new data as soon as you're back online.</p>
+</section>
+
+<!-- Final CTA -->
+<section class="section">
+  <div class="cta-band">
+    <h2 data-guest-only>Ready to start tracking?</h2>
+    <p data-guest-only>Create your account and add your first subject in under a minute.</p>
+    <div class="hero-actions" data-guest-only>
+      <a href="signup.html" class="btn btn-primary">Start Tracking Attendance</a>
+      <a href="login.html" class="btn btn-secondary">Already have an account? Log In</a>
+    </div>
+    <h2 data-auth-only style="display:none;">Back to your attendance</h2>
+    <p data-auth-only style="display:none;">Pick up right where you left off.</p>
+    <div class="hero-actions" data-auth-only style="display:none;">
+      <a href="dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+      <a href="attendance.html" class="btn btn-secondary">Mark Attendance</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="site-brand"><span class="dot"></span>Attendance Tracker</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="login.html">Log In</a>
+    <a href="signup.html">Create Account</a>
+  </nav>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { initPublicPage } from "./js/landing.js";
+  import { initPWA } from "./js/pwa.js";
+  initPublicPage();
+  initPWA();
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Account — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand"><span class="dot"></span>Attendance</div>
+    <h1>Create your account</h1>
+    <p class="subtitle">Track every period, hit your target.</p>
+
+    <form id="signup-form" novalidate>
+      <div class="form-error-banner"></div>
+
+      <div class="field">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" autocomplete="name" placeholder="Bhaskar Reddy" />
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="rollNumber">Roll Number</label>
+          <input type="text" id="rollNumber" name="rollNumber" placeholder="21A91A0501" />
+          <div class="field-error"></div>
+        </div>
+        <div class="field">
+          <label for="semester">Semester</label>
+          <input type="text" id="semester" name="semester" placeholder="5th" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="you@college.edu" />
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="new-password" placeholder="At least 6 characters" />
+          <div class="field-error"></div>
+        </div>
+        <div class="field">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" />
+          <div class="field-error"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="attendanceTarget">Attendance Target (%)</label>
+        <input type="number" id="attendanceTarget" name="attendanceTarget" value="75" min="1" max="100" />
+        <div class="field-error"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+    </form>
+
+    <p class="auth-footer">Already have an account? <a href="login.html">Log In</a></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { initSignupForm } from "./js/auth.js";
+  import { initPWA } from "./js/pwa.js";
+  initSignupForm();
+  initPWA();
+</script>
+</body>
+</html>

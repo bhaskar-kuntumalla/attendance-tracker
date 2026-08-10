@@ -1,0 +1,37 @@
+/* ============================================================
+   profile.css
+   ============================================================ */
+
+.profile-card {
+  max-width: 480px;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.field-readonly {
+  padding: 11px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+.danger-zone {
+  max-width: 480px;
+  margin-top: 20px;
+  border-color: var(--danger-bg);
+}

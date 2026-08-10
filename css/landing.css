@@ -1,0 +1,596 @@
+/* ============================================================
+   landing.css — public pages: index.html (landing) + how-it-works.html
+   Shares tokens (colors/type/radius/shadow) with style.css. Nothing
+   here redefines a token — only new layout/components for these
+   two pages, the same way dashboard.css/subjects.css do for theirs.
+   ============================================================ */
+
+.public-page { background: var(--bg); }
+
+/* ---------------- Site header ---------------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(248, 250, 252, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.site-brand .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--primary);
+  transform: rotate(45deg);
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.site-nav a {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.site-nav a:hover,
+.site-nav a.active { background: var(--card); color: var(--text); }
+
+.site-header-cta { flex-shrink: 0; }
+.header-cta { display: flex; gap: 8px; align-items: center; }
+
+/* ---------------- Hero ---------------- */
+
+.hero-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-size: 44px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.hero-title .accent { color: var(--primary); }
+
+.hero-lead {
+  font-size: 16.5px;
+  line-height: 1.6;
+  max-width: 480px;
+  margin-bottom: 28px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.hero-actions .btn { padding: 13px 22px; font-size: 14.5px; }
+
+.hero-subtext-link {
+  font-size: 13.5px;
+  color: var(--secondary);
+}
+
+.hero-subtext-link a { color: var(--primary); font-weight: 600; }
+
+/* Hero visual: a gradient card echoing dashboard's .hero-card, topped
+   with the app's own "ledger" motif (the per-period dot register)
+   used decoratively — a callback to the real product, not stock art. */
+.hero-visual {
+  background: linear-gradient(135deg, var(--primary) 0%, #1E3A8A 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 26px;
+  color: #fff;
+  box-shadow: var(--shadow-lift);
+}
+
+.hero-visual-label {
+  font-size: 12.5px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.hero-visual-pct {
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
+}
+
+.hero-ledger {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.hero-ledger .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  animation: ledger-in 0.4s ease forwards;
+}
+
+.hero-ledger .dot.present { background: #4ADE80; }
+.hero-ledger .dot.absent { background: #F87171; opacity: 0.9; }
+.hero-ledger .dot.cancelled { background: #FBBF24; opacity: 0.75; }
+
+@keyframes ledger-in {
+  to { opacity: 1; }
+}
+
+.hero-visual-caption {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 14px;
+}
+
+/* Welcome-back hero (authenticated visitors) */
+.hero-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---------------- Section shell ---------------- */
+
+.section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 56px 24px;
+}
+
+.section + .section { border-top: 1px solid var(--border); }
+
+.section-header { max-width: 640px; margin-bottom: 32px; }
+
+.section-eyebrow {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.section-heading { font-size: 27px; margin-bottom: 8px; }
+.section-sub { font-size: 15px; }
+
+/* ---------------- Step flow (workflow diagrams) ---------------- */
+
+.step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.step-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 18px;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.step-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.step-card h3 { font-size: 15.5px; margin-bottom: 6px; }
+.step-card p { font-size: 13.5px; line-height: 1.55; margin-bottom: 0; }
+.step-card .btn { margin-top: 14px; }
+
+/* Connector chevron between cards on wide screens only — the flow
+   really is sequential here, so the arrow encodes real information. */
+@media (min-width: 860px) {
+  .step-grid.with-connectors > .step-card:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -13px;
+    width: 18px;
+    height: 18px;
+    background: var(--bg);
+    border-top: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+    transform: translateY(-50%) rotate(45deg);
+    z-index: 1;
+  }
+}
+
+/* Vertical timeline used for the full 8-step workflow on the guide page */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  position: relative;
+  padding-bottom: 28px;
+}
+
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-marker {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-item:not(:last-child) .timeline-marker::after {
+  content: "";
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  width: 2px;
+  height: calc(100% - 16px);
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+.timeline-body {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+
+.timeline-body h3 { font-size: 16px; margin-bottom: 6px; }
+.timeline-body p { font-size: 14px; line-height: 1.6; margin-bottom: 12px; }
+.timeline-body p:last-of-type { margin-bottom: 0; }
+.timeline-body .btn { margin-top: 4px; }
+
+/* ---------------- Feature grid ---------------- */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.feature-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.feature-icon svg { width: 19px; height: 19px; }
+.feature-card h3 { font-size: 15px; margin-bottom: 6px; }
+.feature-card p { font-size: 13.5px; line-height: 1.55; margin-bottom: 0; }
+
+/* ---------------- Split cards (new / existing user) ---------------- */
+
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.split-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+}
+
+.split-card.accent {
+  background: linear-gradient(135deg, var(--primary) 0%, #1E3A8A 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.split-card h3 { font-size: 18px; margin-bottom: 6px; }
+.split-card.accent h3 { color: #fff; }
+.split-card p { font-size: 14px; margin-bottom: 18px; }
+.split-card.accent p { color: rgba(255, 255, 255, 0.85); }
+
+/* ---------------- Calculation explainer ---------------- */
+
+.calc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.calc-formula {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.calc-example {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  line-height: 1.8;
+  color: var(--secondary);
+}
+
+.calc-example .result { color: var(--success); font-weight: 700; }
+
+.def-list { display: flex; flex-direction: column; gap: 12px; }
+
+.def-item { display: flex; gap: 10px; }
+.def-term {
+  flex-shrink: 0;
+  width: 92px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+}
+.def-desc { font-size: 13px; color: var(--secondary); line-height: 1.5; }
+
+/* ---------------- Install-as-app steps ---------------- */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.install-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.install-card h3 {
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.install-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: install-step;
+}
+
+.install-steps li {
+  counter-increment: install-step;
+  display: flex;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--secondary);
+  padding: 8px 0;
+  border-top: 1px dashed var(--border);
+}
+
+.install-steps li:first-child { border-top: none; }
+
+.install-steps li::before {
+  content: counter(install-step);
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------- CTA band ---------------- */
+
+.cta-band {
+  background: linear-gradient(135deg, var(--primary) 0%, #1E3A8A 100%);
+  border-radius: var(--radius-lg);
+  padding: 44px 32px;
+  text-align: center;
+  color: #fff;
+  box-shadow: var(--shadow-lift);
+}
+
+.cta-band h2 { font-size: 25px; margin-bottom: 8px; color: #fff; }
+.cta-band p { color: rgba(255, 255, 255, 0.85); margin-bottom: 22px; font-size: 15px; }
+
+.cta-band .hero-actions { justify-content: center; margin-bottom: 0; }
+.cta-band .btn-secondary { background: rgba(255, 255, 255, 0.12); color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+.cta-band .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+.cta-band .btn-primary { background: #fff; color: var(--primary-dark); box-shadow: none; }
+.cta-band .btn-primary:hover { background: #F1F5F9; }
+
+/* ---------------- Footer ---------------- */
+
+.site-footer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.site-footer nav { display: flex; gap: 18px; }
+.site-footer nav a { color: var(--secondary); font-weight: 600; }
+.site-footer nav a:hover { color: var(--primary); }
+
+/* ---------------- Guide-page intro list ---------------- */
+
+.concept-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.concept-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.concept-item svg { width: 16px; height: 16px; color: var(--success); flex-shrink: 0; margin-top: 1px; }
+
+/* ---------------- Guide intro (centered mini-hero) ---------------- */
+
+.guide-intro { text-align: center; padding-top: 48px; }
+.guide-intro .hero-eyebrow { margin-left: auto; margin-right: auto; }
+.guide-intro .hero-title { max-width: 640px; margin-left: auto; margin-right: auto; font-size: 38px; }
+.guide-intro .hero-lead { max-width: 560px; margin-left: auto; margin-right: auto; }
+.guide-intro .hero-actions { justify-content: center; }
+
+.section-header.centered { margin-left: auto; margin-right: auto; text-align: center; }
+
+/* Jump nav — quick links down the guide page */
+.jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.jump-nav a {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--secondary);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+}
+
+.jump-nav a:hover { color: var(--primary); border-color: var(--primary-light); }
+
+/* ---------------- Utility ---------------- */
+
+.js-hidden { display: none !important; }

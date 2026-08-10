@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log in — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand"><span class="dot"></span>Attendance</div>
+    <h1>Welcome back</h1>
+    <p class="subtitle">Log in to keep your attendance up to date.</p>
+
+    <form id="login-form" novalidate>
+      <div class="form-error-banner"></div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="you@college.edu" />
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••" />
+        <div class="field-error"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+    </form>
+
+    <p class="auth-footer">Don't have an account? <a href="signup.html">Create Account</a></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { initLoginForm } from "./js/auth.js";
+  import { initPWA } from "./js/pwa.js";
+  initLoginForm();
+  initPWA();
+</script>
+</body>
+</html>

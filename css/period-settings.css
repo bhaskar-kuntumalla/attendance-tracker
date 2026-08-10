@@ -1,0 +1,51 @@
+/* ============================================================
+   period-settings.css — Custom Period Timings Settings
+   ============================================================ */
+
+.period-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.period-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 60px 1.5fr 1fr 1fr 100px 40px;
+  gap: 12px;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.period-item-card:hover {
+  border-color: #cbd5e1;
+}
+
+.period-item-card.is-break {
+  background: #fffbebfb;
+  border-color: #fde68a;
+}
+
+.period-num-badge {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #2563eb;
+  background: #eff6ff;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .period-item-card {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Timetable — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/timetable.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Timetable</h1>
+        <div class="subtitle">Set up your weekly timetable automatically via photo upload or create manually.</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a href="period-settings.html" class="btn btn-secondary btn-sm">Period Settings</a>
+        <button id="reset-timetable-btn" class="btn btn-secondary btn-sm" style="display:none;">Update Timetable</button>
+      </div>
+    </div>
+
+    <!-- Mode Selector & Upload Card -->
+    <div id="setup-container">
+      <div class="timetable-options">
+        <div class="option-card active" id="opt-upload">
+          <div class="option-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="option-title">Upload Timetable Photo</div>
+          <div class="option-desc">Browser AI OCR auto-detects subjects, periods, days, and labs in seconds. 100% Free & Private.</div>
+        </div>
+
+        <div class="option-card" id="opt-manual">
+          <div class="option-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div class="option-title">Create Manually</div>
+          <div class="option-desc">Build your weekly timetable step-by-step or add classes manually.</div>
+        </div>
+      </div>
+
+      <!-- Upload Dropzone View -->
+      <div class="card" id="upload-box">
+        <div class="dropzone" id="dropzone">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <h3 style="font-size:16px;margin-bottom:4px;">Drag & Drop Timetable Image</h3>
+          <p class="text-sm" style="color:#64748b;margin-bottom:16px;">Supports JPG, JPEG, PNG, WebP (Max 15MB)</p>
+          <input type="file" id="timetable-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" />
+          <button type="button" class="btn btn-primary" id="browse-btn">Choose Image</button>
+        </div>
+
+        <div class="upload-preview-container" id="preview-box" style="display:none;">
+          <img id="preview-img" class="upload-preview-img" alt="Timetable preview" />
+          <div class="preview-meta">
+            <span id="preview-filename">filename.png</span>
+            <button id="remove-img-btn" class="btn btn-ghost btn-sm" style="color:#ef4444;">Remove</button>
+          </div>
+          <button id="process-ocr-btn" class="btn btn-primary btn-block mt-16">Process Timetable with Browser OCR</button>
+        </div>
+
+        <div class="ocr-progress-card" id="ocr-progress" style="display:none;">
+          <div class="progress-header">
+            <span id="progress-status-text">Processing Timetable...</span>
+            <span id="progress-pct-text">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+          </div>
+          <div class="progress-steps">
+            <div class="step-item" id="step-1"><span class="step-dot"></span> Loading Browser OCR Engine</div>
+            <div class="step-item" id="step-2"><span class="step-dot"></span> Preprocessing Timetable Image</div>
+            <div class="step-item" id="step-3"><span class="step-dot"></span> Detecting Days & Periods</div>
+            <div class="step-item" id="step-4"><span class="step-dot"></span> Extracting Theory & Lab Subjects</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification / Editor Screen -->
+    <div id="verification-container" style="display:none;">
+      <div class="card">
+        <div class="verification-header">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;">Verify & Confirm Timetable</h2>
+            <p class="text-sm" style="color:#64748b;">Review extracted subjects, timing, and labs. Make edits if needed before saving.</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button id="add-entry-btn" class="btn btn-secondary btn-sm">+ Add Class</button>
+            <button id="confirm-timetable-btn" class="btn btn-primary btn-sm">Confirm Timetable</button>
+          </div>
+        </div>
+
+        <div id="dedup-banner-slot"></div>
+
+        <div id="verification-days-list">
+          <!-- Populated dynamically per day -->
+        </div>
+
+        <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+          <button id="cancel-verification-btn" class="btn btn-ghost">Cancel / Re-upload</button>
+          <button id="confirm-timetable-btn-bottom" class="btn btn-primary">Confirm & Create Subjects</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Timetable Display View -->
+    <div id="view-container" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;">Weekly Timetable</h2>
+            <p class="text-sm" style="color:#64748b;">Your confirmed weekly class routine.</p>
+          </div>
+          <a href="period-settings.html" class="btn btn-secondary btn-sm">Custom Periods</a>
+        </div>
+
+        <!-- Desktop Grid View -->
+        <div class="timetable-grid-wrapper desktop-only">
+          <table class="timetable-table">
+            <thead>
+              <tr id="grid-header">
+                <th>Period / Time</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+              </tr>
+            </thead>
+            <tbody id="grid-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card Accordion View -->
+        <div class="mobile-only" id="mobile-timetable-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initTimetable } from "./js/timetable.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initTimetable();
+</script>
+</body>
+</html>

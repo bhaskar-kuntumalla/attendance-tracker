@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics — Attendance Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2563EB" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Attendance" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icons/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/analytics.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<div class="app">
+  <div id="sidebar-slot"></div>
+
+  <main class="main">
+    <div id="topbar-slot"></div>
+
+    <div class="page-header">
+      <div>
+        <h1>Analytics</h1>
+        <div class="subtitle">Trends, history, and what-if simulation.</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="simulator">Simulator</button>
+      <button class="tab-btn" data-tab="history">History</button>
+      <button class="tab-btn" data-tab="absences">Absences</button>
+    </div>
+
+    <!-- Overview -->
+    <div class="tab-panel" id="tab-overview">
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="num" id="ov-overall">—</div><div class="label">Overall Attendance</div></div>
+        <div class="stat-tile"><div class="num" id="ov-total">0</div><div class="label">Total Periods</div></div>
+        <div class="stat-tile"><div class="num" id="ov-present">0</div><div class="label">Present Periods</div></div>
+        <div class="stat-tile"><div class="num" id="ov-absent">0</div><div class="label">Absent Periods</div></div>
+        <div class="stat-tile"><div class="sub-name" id="ov-best">—</div><div class="num" id="ov-best-pct" style="font-size:16px;"></div><div class="label">Best Subject</div></div>
+        <div class="stat-tile"><div class="sub-name" id="ov-worst">—</div><div class="num" id="ov-worst-pct" style="font-size:16px;"></div><div class="label">Worst Subject</div></div>
+        <div class="stat-tile"><div class="num" id="ov-below">0</div><div class="label">Below Target</div></div>
+        <div class="stat-tile"><div class="num" id="ov-above">0</div><div class="label">Above Target</div></div>
+      </div>
+
+      <div class="section-title">Subject-wise Attendance</div>
+      <div class="card" id="chart"></div>
+    </div>
+
+    <!-- Simulator -->
+    <div class="tab-panel" id="tab-simulator">
+      <div class="field sim-select">
+        <label for="sim-subject-select">Subject</label>
+        <select id="sim-subject-select"></select>
+      </div>
+      <div id="sim-body"></div>
+    </div>
+
+    <!-- History -->
+    <div class="tab-panel" id="tab-history">
+      <div class="filter-bar">
+        <select id="filter-subject"></select>
+        <select id="filter-status">
+          <option value="">All Statuses</option>
+          <option value="present">Present</option>
+          <option value="absent">Absent</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <input type="date" id="filter-from" title="From date" />
+        <input type="date" id="filter-to" title="To date" />
+      </div>
+      <div class="card" style="padding:0;overflow-x:auto;">
+        <table class="history-table">
+          <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Periods</th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Absences -->
+    <div class="tab-panel" id="tab-absences">
+      <div class="card flex-between mb-0" style="margin-bottom:16px;">
+        <span class="text-secondary text-sm">Total Absence</span>
+        <span style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--danger);" id="absent-total">0</span>
+      </div>
+      <div id="absent-list"></div>
+    </div>
+  </main>
+</div>
+
+<div id="bottomnav-slot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import { injectShell } from "./js/nav.js";
+  import { initLogoutButton, markActiveNav } from "./js/utils.js";
+  import { initAnalytics } from "./js/analytics.js";
+  import { initPWA } from "./js/pwa.js";
+
+  injectShell();
+  initLogoutButton();
+  markActiveNav();
+  initPWA();
+  initAnalytics();
+</script>
+</body>
+</html>
